@@ -105,7 +105,7 @@ def get_coords_res(myfun,m,fnumber):
 
     samp=np.random.choice(a, m, replace=False)
     for i in range(0,m):
-	c=np.array([[coords_tot[i]]])
+        c=np.array([[coords_tot[i]]])
         coords_sampled=np.concatenate((coords_sampled,c),axis=0)
 
     coords_sampled=np.delete(coords_sampled,(0),axis=0)
@@ -152,7 +152,7 @@ def get_coords(x,y,z,m,fnumber):
 
     samp=np.random.choice(a, m, replace=False)
     for i in range(0,m):
-	c=np.array([[x[samp[i]],y[samp[i]],z[samp[i]]]])
+        c=np.array([[x[samp[i]],y[samp[i]],z[samp[i]]]])
         coords_sampled=np.concatenate((coords_sampled,c),axis=0)
 
     coords_sampled=np.delete(coords_sampled,(0),axis=0)
@@ -169,7 +169,7 @@ def Bcheck():
     myh3d=mk2d3d(h)
     myph3d=mk2d3d(ph)
     for k in range(0,nz):
-	myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
+        myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
 
     rfd("fieldline"+str(fnumber)+".bin")
     cvel()
@@ -279,13 +279,13 @@ if previousseed==1:
     for n in range(0,int(len(xnew))):
         find nearest neighbor for xnew[n], ynew[n] #figure out how to do this
         iofx=arg(xnew) #figure out how to do this
-	jofy=arg(ynew)
-	prob_array[n] = Bprob[iofx,jofy,:]
-	if prob_array[n]<=0:
-	    get new random seedpoint #modify get_coordsw to do variable number of seedpoints
-	    xnew[n]=xofnewpoint
-	    ynew[n]=yofnewpoint
-	    prob_array[n]=Bprob[xnew,ynew,0]
+        jofy=arg(ynew)
+        prob_array[n] = Bprob[iofx,jofy,:]
+        if prob_array[n]<=0:
+            get new random seedpoint #modify get_coordsw to do variable number of seedpoints
+            xnew[n]=xofnewpoint
+            ynew[n]=yofnewpoint
+            prob_array[n]=Bprob[xnew,ynew,0]
     sort prob_array from largest to smallest #figure out how to do this
     if len(xnew)>nsp:
         xnew=xnew[0:nsp]
@@ -350,20 +350,20 @@ def plot_stress(fnumber, phi, cap, floor, xy=True, noavg=True):
     nxout=iofr(30)
     if noavg:
         numMag=jabs(-bu[1]*np.sqrt(gv3[1,1])*bd[3]*np.sqrt(gn3[3,3]))
-	numRey=jabs(rho*(uu[1])*np.sqrt(gv3[1,1])*(ud[3])*np.sqrt(gn3[3,3]))
+        numRey=jabs(rho*(uu[1])*np.sqrt(gv3[1,1])*(ud[3])*np.sqrt(gn3[3,3]))
 
     else:
         avgexists=checkiffullavgexists()
         if avgexists==1:
             loadavg()
             loadedavg=1
-	    numMag=jabs(-(bu[1]-avg_bu[1])*np.sqrt(gv3[1,1])*(bd[3]-avg_bd[3])*np.sqrt(gn3[3,3]))
+            numMag=jabs(-(bu[1]-avg_bu[1])*np.sqrt(gv3[1,1])*(bd[3]-avg_bd[3])*np.sqrt(gn3[3,3]))
             numRey=jabs(rho*(uu[1]-avg_uu[1])*np.sqrt(gv3[1,1])*(ud[3]-avg_ud[3])*np.sqrt(gn3[3,3]))
         else:
             print 'avg2d.npy was not found so no turbulent stress can be computed'
-	    break
+            break
 
-	denMR=(bsq*0.5+(gam-1.0)*ug)
+        denMR=(bsq*0.5+(gam-1.0)*ug)
         arey=numRey/denMR
         amag=numMag/denMR
 
@@ -378,19 +378,19 @@ def plot_stress(fnumber, phi, cap, floor, xy=True, noavg=True):
         myy=r[nxin:nxout,ny/2,:]*np.sin(h[nxin:nxout,ny/2,:])*np.sin(ph[nxin:nxout,ny/2,:])
         myz=r[nxin:nxout,ny/2,:]*np.cos(h[nxin:nxout,ny/2,:])
 
-	ax = plt.gca()
-	ax.pcolor(myx,myy,myfun[nxin:nxout,ny/2,:],norm=[None,MidpointNormalize(midpoint=0)][ax>=1])  #try pcolormesh -faster; what does the norm[] part do?
-	plc(myfun[nxin:nxout,ny/2,:],xcoord=myx,ycoord=myy,ax=ax,cb=True,nc=50,norm=[None,MidpointNormalize(midpoint=0)][ax>=1]) #nc = number of contour
-	plt.savefig('amag_f'+str(fnumber)+'xy+'.png')
+        ax = plt.gca()
+        ax.pcolor(myx,myy,myfun[nxin:nxout,ny/2,:],norm=[None,MidpointNormalize(midpoint=0)][ax>=1])  #try pcolormesh -faster; what does the norm[] part do?
+        plc(myfun[nxin:nxout,ny/2,:],xcoord=myx,ycoord=myy,ax=ax,cb=True,nc=50,norm=[None,MidpointNormalize(midpoint=0)][ax>=1]) #nc = number of contour
+        plt.savefig('amag_f'+str(fnumber)+'xy+'.png')
     else:
         ###use slice in phi
-    	myx=r[nxin:nxout,:,0]*np.sin(h[nxin:nxout,:,0])*np.cos(ph[nxin:nxout,:,0])
-    	myy=r[nxin:nxout,:,0]*np.sin(h[nxin:nxout,:,0])*np.sin(ph[nxin:nxout,:,0])
-    	myz=r[nxin:nxout,:,0]*np.cos(h[nxin:nxout,:,0])
-	ax = plt.gca()
-	ax.pcolor(myx,myz,myfun[nxin:nxout,:,phi])  #try pcolormesh - faster
-	plc(myfun[nxin:nxout,:,phi],xcoord=myx,ycoord=myz,ax=ax,cb=True,nc=50) #nc = number of contour
-	plt.savefig('amag_f'+str(fnumber)+'xz+'.png')
+        myx=r[nxin:nxout,:,0]*np.sin(h[nxin:nxout,:,0])*np.cos(ph[nxin:nxout,:,0])
+        myy=r[nxin:nxout,:,0]*np.sin(h[nxin:nxout,:,0])*np.sin(ph[nxin:nxout,:,0])
+        myz=r[nxin:nxout,:,0]*np.cos(h[nxin:nxout,:,0])
+        ax = plt.gca()
+        ax.pcolor(myx,myz,myfun[nxin:nxout,:,phi])  #try pcolormesh - faster
+        plc(myfun[nxin:nxout,:,phi],xcoord=myx,ycoord=myz,ax=ax,cb=True,nc=50) #nc = number of contour
+        plt.savefig('amag_f'+str(fnumber)+'xz+'.png')
     #############################
 
 

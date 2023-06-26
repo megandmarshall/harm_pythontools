@@ -8,8 +8,7 @@ from numpy import ma
 import scipy as sp
 from scipy.interpolate import griddata
 import datetime as dt
-from matplotlib import mpl
-
+import matplotlib as mpl
 #filename=raw_input("Enter name of file with quantities from __init__.py: ")
 
 ###For Stampede###

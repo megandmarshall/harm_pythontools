@@ -4,7 +4,7 @@ from numpy import ma
 import scipy as sp
 from scipy.interpolate import griddata
 import datetime as dt
-from matplotlib import mpl
+import matplotlib as mpl
 from matplotlib.colors import Normalize
 import __init__
 
