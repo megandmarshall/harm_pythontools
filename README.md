@@ -1,3 +1,4 @@
+# By Max Hanrahan (Class of 2022)
 # harm_pythontools:
 Python and related bash scripts and C code to analyze HARM data. Now in python3!
 
