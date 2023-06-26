@@ -1,6 +1,6 @@
-# By Max Hanrahan (Class of 2022)
 # harm_pythontools:
 Python and related bash scripts and C code to analyze HARM data. Now in python3!
+By Max Hanrahan (Class of 2022)
 
 ## Rendering functions:
 The most important rendering function so far is `render_and_load_iso_points()` in `__init_simple__.py`. It takes the fieldline number as input and will display an "isosurface" comprised of points, with an interactive slider that lets you filter out density. It will also display the number of the fieldline being rendered.
