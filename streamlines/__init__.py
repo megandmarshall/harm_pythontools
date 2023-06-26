@@ -313,7 +313,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
     ## Now we build up the trajectory set. I've found it best to look
     ## for blank==0 along the edges first, and work inwards.
-    for indent in range((max(NBX,NBY))/2):
+    for indent in range(int((max(NBX,NBY))/2)):
         for xi in range(max(NBX,NBY)-2*indent):
             traj(xi+indent, indent)
             traj(xi+indent, NBY-1-indent)
@@ -584,22 +584,22 @@ def fstreamplot(x, y, u, v, ua = None, va = None, density=1, linewidth=1,
                     k4x, k4y = f(xi + ds*k3x, yi + ds*k3y)
                 except IndexError:
                     # Out of the domain on one of the intermediate steps
-                    print("OD: %g %g" % (x0,y0))
+                    print(("OD: %g %g" % (x0,y0)))
                     sys.stdout.flush()
                     break
                 except OverflowError:
                     # Overflow -- break (AT)
-                    print("Overflow: %g %g" % (x0,y0))
+                    print(("Overflow: %g %g" % (x0,y0)))
                     sys.stdout.flush()
                     break
                 except numpy.ma.MaskError:
                     # Attribute -- break (AT)
-                    print("Att: %g %g" % (x0,y0))
+                    print(("Att: %g %g" % (x0,y0)))
                     sys.stdout.flush()
                     break
                 except ValueError:
                     # ValueError -- break (AT)
-                    print("VE: %g %g" % (x0,y0))
+                    print(("VE: %g %g" % (x0,y0)))
                     sys.stdout.flush()
                     break
                 xi += ds*(k1x+2*k2x+2*k3x+k4x) / 6.
@@ -755,7 +755,7 @@ def fstreamplot(x, y, u, v, ua = None, va = None, density=1, linewidth=1,
             if t != None:
                 trajectories.append(t)
             elif doreport:
-                print( "Trajectory with starting xb = %f, yb = %f did not work" % (xb, yb) )
+                print(( "Trajectory with starting xb = %f, yb = %f did not work" % (xb, yb) ))
 
     def xyabsofxyb( xb, yb ):
         xabs = xb * bx_spacing * DX + XOFF
@@ -815,7 +815,7 @@ def fstreamplot(x, y, u, v, ua = None, va = None, density=1, linewidth=1,
 
     #if downsampling, only send in streamlines from boundaries
     if downsample != 1 and domidfield==1:
-        print("Doing domidfield=%d" % (domidfield))
+        print(("Doing domidfield=%d" % (domidfield)))
         sys.stdout.flush()
         #print("useblank=%d minindent=%d startatmidplane=%d" % (useblank,minindent,startatmidplane))
         #

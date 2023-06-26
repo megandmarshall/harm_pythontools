@@ -312,7 +312,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
     ## Now we build up the trajectory set. I've found it best to look
     ## for blank==0 along the edges first, and work inwards.
-    for indent in range((max(NBX,NBY))/2):
+    for indent in range(int((max(NBX,NBY))/2)):
         for xi in range(max(NBX,NBY)-2*indent):
             traj(xi+indent, indent)
             traj(xi+indent, NBY-1-indent)
@@ -707,7 +707,7 @@ def fstreamplot(x, y, u, v, ua = None, va = None, density=1, linewidth=1,
             if t != None:
                 trajectories.append(t)
             elif doreport:
-                print( "Trajectory with starting xb = %f, yb = %f did not work" % (xb, yb) )
+                print(( "Trajectory with starting xb = %f, yb = %f did not work" % (xb, yb) ))
 
     def xyabsofxyb( xb, yb ):
         xabs = xb * bx_spacing * DX + XOFF
