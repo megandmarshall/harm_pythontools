@@ -1,3 +1,7 @@
+'''
+An even simpler version of __init_student__ that Max made for rendering/loading
+densities and fieldlines.
+'''
 ###Simplified code with only the functions needed to replicate Marshall, McKinney, and Avara 2018
 ###needs a lot of commenting and to updated to work with Python3 (Megan 6/5/20)
 
@@ -281,7 +285,7 @@ def printusage():
     print(("memoryusage=%g" % (memoryusage))) ; sys.stdout.flush()
     #
 
-###Setting common zero color in pcolor - From Joe Kington's answer here: http://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib  
+###Setting common zero color in pcolor - From Joe Kington's answer here: http://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib
 class MidpointNormalize(Normalize):
     def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
         self.midpoint = midpoint
@@ -329,7 +333,7 @@ def sec(x):
     y[np.fabs(np.mod(x,0.5*np.pi))<1E-14]=0.0
     return(y)
 
-#arctan2 is identical to the atan2 function of the underlying C library. 
+#arctan2 is identical to the atan2 function of the underlying C library.
 def atan2(x,y):
     return(np.arctan2(x,y))
 
@@ -352,7 +356,7 @@ def tryint(s):
         return int(s)
     except:
         return s
-    
+
 def alphanum_key(s):
     """ Turn a string into a list of string and number chunks.
         "z23a" -> ["z", 23, "a"]
@@ -382,17 +386,17 @@ def getnearpos(array,value):
 def mdot(a,b):
     """
     Computes a contraction of two tensors/vectors.  Assumes
-    the following structure: tensor[m,n,i,j,k] OR vector[m,i,j,k], 
-    where i,j,k are spatial indices and m,n are variable indices. 
+    the following structure: tensor[m,n,i,j,k] OR vector[m,i,j,k],
+    where i,j,k are spatial indices and m,n are variable indices.
     """
     if a.ndim == 4 and b.ndim == 4:
           c = (a*b).sum(0)
     elif a.ndim == 5 and b.ndim == 4:
-          c = np.empty(amax(a[:,0,:,:,:].shape,b.shape),dtype=b.dtype)      
+          c = np.empty(amax(a[:,0,:,:,:].shape,b.shape),dtype=b.dtype)
           for i in range(a.shape[0]):
                 c[i,:,:,:] = (a[i,:,:,:,:]*b).sum(0)
     elif a.ndim == 4 and b.ndim == 5:
-          c = np.empty(amax(b[0,:,:,:,:].shape,a.shape),dtype=a.dtype)      
+          c = np.empty(amax(b[0,:,:,:,:].shape,a.shape),dtype=a.dtype)
           for i in range(b.shape[1]):
                 c[i,:,:,:] = (a*b[:,i,:,:,:]).sum(0)
     elif a.ndim == 5 and b.ndim == 5:
@@ -1070,7 +1074,7 @@ def grid3d(dumpname,use2d=False,doface=False,usethetarot0=False): #read grid dum
     #
     # get other things
     gridcellverts()
-    # 
+    #
     gc.collect() #try to release unneeded memory
     print( "Done grid3d!" ) ; sys.stdout.flush()
 
@@ -1105,7 +1109,7 @@ def grid3d_load(dumpname=None,use2d=False,doface=False,loadsimple=False): #read 
     _dx1=myfloatalt(float(header[7]))
     _dx2=myfloatalt(float(header[8]))
     _dx3=myfloatalt(float(header[9]))
-    #other information: 
+    #other information:
     #polytropic index
     gam=myfloatalt(float(header[11]))
     #black hole spin
@@ -1127,16 +1131,16 @@ def grid3d_load(dumpname=None,use2d=False,doface=False,loadsimple=False): #read 
     ncols = 126
     if dumpname.endswith(".bin"):
         print(( "Start reading grid as binary with lnz=%d" % (lnz) )) ; sys.stdout.flush()
-        body = np.fromfile(gin,dtype=np.float64,count=ncols*nx*ny*lnz) 
+        body = np.fromfile(gin,dtype=np.float64,count=ncols*nx*ny*lnz)
         gd = body.view().reshape((-1,nx,ny,lnz),order='F')
         gin.close()
         print(( "Done reading grid as binary with lnz=%d" % (lnz) )) ; sys.stdout.flush()
     else:
         print(( "Start reading grid as text with lnz=%d" % (lnz) )) ; sys.stdout.flush()
         gin.close()
-        gd = np.loadtxt( "dumps/" + dumpname, 
-                      dtype=np.float64, 
-                      skiprows=1, 
+        gd = np.loadtxt( "dumps/" + dumpname,
+                      dtype=np.float64,
+                      skiprows=1,
                       unpack = True ).view().reshape((126,nx,ny,lnz), order='F')
         print(( "End reading grid as text with lnz=%d" % (lnz) )) ; sys.stdout.flush()
     gd=myfloat(gd)
@@ -1162,7 +1166,6 @@ def grid3d_load(dumpname=None,use2d=False,doface=False,loadsimple=False): #read 
         #ck = gd[106:110].view().reshape((4,nx,ny,lnz), order='F')
         #grid mapping Jacobian
         dxdxp = gd[110:126].view().reshape((4,4,nx,ny,lnz), order='F').transpose(1,0,2,3,4)
-
 def gridcellverts():
     ##################################
     #CELL VERTICES:
@@ -1218,10 +1221,10 @@ def gridcellverts():
 ###################################
 def rfd(fieldlinefilename,**kwargs):
     # MEMMARK: 5+4+1+4+4+4+1+16=39 full 3D vars
-    #read information from "fieldline" file: 
-    #Densities: rho, u, 
-    #Velocity components: u1, u2, u3, 
-    #Cell-centered magnetic field components: B1, B2, B3, 
+    #read information from "fieldline" file:
+    #Densities: rho, u,
+    #Velocity components: u1, u2, u3,
+    #Cell-centered magnetic field components: B1, B2, B3,
     #Face-centered magnetic field components multiplied by metric determinant: gdetB1, gdetB2, gdetB3
     global rho,ug,uu,B,gdetB,Erf,urad,uradu, numcolumns
     #
@@ -1332,7 +1335,7 @@ def rfd(fieldlinefilename,**kwargs):
             #
             uu[:]=urel[:]-(gamma/alpha)*beta[:] # spatial part
             uu[0]=gamma/alpha
-            
+
     #
     #B = np.zeros_like(uu)
     #cell-centered magnetic field components
@@ -1498,7 +1501,7 @@ def rfdheader(fin=None):
     _dx3=myfloatalt(float(header[9]))
     #
     nstep=int(header[10])
-    #other information: 
+    #other information:
     #polytropic index
     gam=myfloatalt(float(header[11]))
     #black hole spin
@@ -1617,7 +1620,7 @@ def rfdheaderonly(filename="dumps/fieldline0000.bin"):
     fin = open(filename, "rb" )
     rfdheader(fin=fin)
     fin.close()
-    
+
 def rfdheaderlastfile():
     flist = glob.glob( os.path.join("dumps/", "fieldline*.bin") )
     sort_nicely(flist)
@@ -1643,7 +1646,7 @@ def rfdprocess(gotgdetB=0):
     #
     #if the input file contains additional data
     #
-    if(gotgdetB==0): 
+    if(gotgdetB==0):
         print("No data on gdetB, approximating it.") ; sys.stdout.flush()
         gdetB = np.zeros((4,nx,ny,nz),dtype='float32',order='F')
         print("shapes:") ; sys.stdout.flush()
@@ -1675,7 +1678,7 @@ def rfdprocess(gotgdetB=0):
     #
     #     if 'gdet' in globals():
     #         #first set everything approximately (B's are at shifted locations by half-cell)
-    #         B = gdetB/gdet  
+    #         B = gdetB/gdet
     #         #then, average the inner cells to proper locations
     #         B[1,0:nx-1,:,:] = 0.5*(gdetB[1,0:nx-1,:,:]+gdetB[1,1:nx,:,:])/gdet[0:nx-1,:,:]
     #         B[2,:,0:ny-1,:] = 0.5*(gdetB[2,:,0:ny-1,:]+gdetB[2,:,1:ny,:])/gdet[:,0:ny-1,:]
@@ -2196,7 +2199,7 @@ def cvel():
     aphi = fieldcalc()
     #
     uradd = mdot(gv3,uradu)                  #g_mn urad^n
-    # 
+    #
     # get tau's
     taurad1integrated,taurad1flipintegrated,taurad2integrated,taurad2flipintegrated,tauradintegrated,tauradeff1integrated,tauradeff1flipintegrated,tauradeff2integrated,tauradeff2flipintegrated,tauradeffintegrated=compute_taurad()
 
@@ -2228,7 +2231,7 @@ def getrhouclean(rho,ug,uu):
     rinterp[rinterp<0.0]=0.0
     #
     condmaxbsqorhorhs=rinterp*maxbsqorhonear + (1.0-rinterp)*maxbsqorhofar
-    condmaxbsqorho=(bsq/rho < condmaxbsqorhorhs) # used as spatial conditional to replace single value of maxbsqorho 
+    condmaxbsqorho=(bsq/rho < condmaxbsqorhorhs) # used as spatial conditional to replace single value of maxbsqorho
     #
     print(("t=%g" % (t)))
     print("r")
@@ -2495,14 +2498,14 @@ def fieldcalcU(gdetB1=None):
     aphi=fieldcalcU2D(gdetB1=gdetB1)
     return(aphi)
 
-# pure 2D version   
+# pure 2D version
 def fieldcalcU2D(gdetB1=None):
     """
     Computes cell-centered vector potential
     """
     aphi=fieldcalcface(gdetB1)
     #center it properly in theta
-    aphi[:,0:ny-1]=0.5*(aphi[:,0:ny-1]+aphi[:,1:ny]) 
+    aphi[:,0:ny-1]=0.5*(aphi[:,0:ny-1]+aphi[:,1:ny])
     #special treatment for last cell since no cell at j = ny, and we know aphi[:,ny] should vanish
     aphi[:,ny-1] *= 0.5
     #and in r
@@ -2627,7 +2630,7 @@ def compute_taurad(domergeangles=True,radiussettau1zero=80):
         ########################### tauradeff3
         tauradeff3=uu[0]*np.sqrt(KAPPAUSER*(KAPPAUSER+KAPPAESUSER))*dphco
         #
-        # so tauradintegrated (final version) is optical depth integrated from large radii and away from pole. 
+        # so tauradintegrated (final version) is optical depth integrated from large radii and away from pole.
         tauradintegrated=np.maximum(taurad1flipintegrated,taurad2integrated)
         tauradeffintegrated=np.maximum(tauradeff1flipintegrated,tauradeff2integrated)
         #
@@ -2652,7 +2655,7 @@ def get2davg(usedefault=0,whichgroup=-1,whichgroups=-1,whichgroupe=-1,itemspergr
         whichgroupe = whichgroups + 1
     #check values for sanity
     if usedefault == 0 and (whichgroups < 0 or whichgroupe < 0 or whichgroups >= whichgroupe or itemspergroup <= 0):
-        print(( "get2davg: whichgroups = %d, whichgroupe = %d, itemspergroup = %d not allowed" 
+        print(( "get2davg: whichgroups = %d, whichgroupe = %d, itemspergroup = %d not allowed"
                % (whichgroups, whichgroupe, itemspergroup) ));sys.stdout.flush()
         sys.stdout.flush()
         return None
@@ -3090,7 +3093,7 @@ def get2davgone(whichgroup=-1,itemspergroup=20):
         # faraday
         avg_absfdd+=(np.fabs(fdd)).sum(-1)[:,:,:,:,None]*localdt[itert] # take absolute value since oscillate around 0 near equator and would cancel out and give noise in fdd/fdd type calculations, such as for omegaf
         #
-        # 
+        #
         uuud=odot(uu,ud).sum(-1)[:,:,:,:,None]*localdt[itert]
         #
         # 16*5=80
@@ -3312,7 +3315,7 @@ def faraday():
     # GODMARK: These assume rotation about z-axis
     omegaf2b=np.fabs(v3nonhat) + np.sign(uu[1])*(vpol/Bpol)*np.fabs(B3nonhat)
     #
-    # below omega for the field 
+    # below omega for the field
     omegaf1b=v3nonhat - B3nonhat*(v1hat*B1hat+v2hat*B2hat)/(B1hat**2+B2hat**2)
 
 def checkiffullavgexists():
@@ -3327,130 +3330,6 @@ def checkiffullavgexists():
         print(( "File %s does not exist" % fname ));sys.stdout.flush()
         return(0)
 
-###################################
-#
-# Plotting Functions
-#
-###################################
-def plco(myvar,xcoord=None,ycoord=None,ax=None,picker=False,**kwargs):
-    plt.clf()
-    ax=plc(myvar,xcoord,ycoord,ax,picker=picker,**kwargs)
-    return(ax)
-
-def plc(myvar,xcoord=None,ycoord=None,ax=None,picker=False,**kwargs): #needs debugging for 2.7.18
-    #
-    #
-    #
-    #xcoord = kwargs.pop('x1', None)
-    #ycoord = kwargs.pop('x2', None)
-    if(np.min(myvar)==np.max(myvar)):
-        print(("The quantity you are trying to plot is a constant = %g." % np.min(myvar))) ; sys.stdout.flush()
-        return
-    cb = kwargs.pop('cb', False)
-    nc = kwargs.pop('nc', 15)
-    levels = kwargs.pop('levels',(1,))
-    #levels=(aphi[ihor,ny/2,0],))
-    k = kwargs.pop('k',0)
-    if None != xcoord and None != ycoord:
-        xcoord = xcoord[:,:,None] if xcoord.ndim == 2 else xcoord[:,:,k:k+1]
-        ycoord = ycoord[:,:,None] if ycoord.ndim == 2 else ycoord[:,:,k:k+1]
-    myvar = myvar[:,:,None] if myvar.ndim == 2 else myvar[:,:,k:k+1]
-    if ax is None:
-        ax = plt.gca()
-    if( xcoord == None or ycoord == None ):
-        if nc==15:# poor man's way to choose
-            res = ax.contour(myvar[:,:,0].transpose(),levels=levels,picker=picker,**kwargs)
-        else:
-            res = ax.contour(myvar[:,:,0].transpose(),nc,picker=picker,**kwargs)
-    else:
-        if nc==15:# poor man's way to choose
-            res = ax.contour(xcoord[:,:,0],ycoord[:,:,0],myvar[:,:,0],levels=levels,picker=picker,**kwargs)
-        else:
-            res = ax.contour(xcoord[:,:,0],ycoord[:,:,0],myvar[:,:,0],nc,picker=picker,**kwargs)
-    if( cb == True): #use color bar
-        plt.colorbar(res,ax=ax)
-    return(ax)
-
-def plot_slice(fnumber, phi, cap, floor, IC=True, stress=True):
-    '''Plotting function to visualize 2d slices of the disc                                                                                                                                                  
-    fnumber = which fieldline file to load                                                                                                                                                                   
-    phi = index of position to take slice at                                                                                                                                                                 
-    cap = upper bound on quantity being plotted (if unwanted, use absurdly high value)                                                                                                                       
-    floor = lower bound on quantity being plotted (if unwanted, use absurdly low value)                                                                                                                      
-    IC = True: using the internal coordinates (Boyer-Lindquist)                                                                                                                                              
-    IC = False: use spherical polar coordinates                                                                                                                                                              
-    stress = True: plots stress terms (currently just Maxwell 6/12/15)                                                                                                                                       
-    stress = False: plots vertical magnetic field                                                                                                                                                            
-    radii of slice chosen with nxin, nxout'''
-
-    # first load grid file
-    global use2dglobal
-    use2dglobal=True
-    grid3d("gdump.bin", use2d=use2dglobal)
-    # now try loading a single fieldline file                                                                        
-    rfd("fieldline"+str(fnumber)+".bin")
-    # now plot something you read-in                                                                                 
-    plt.clf()
-    plt.figure(1)
-    #                                                                                                                
-    ###############################                                                                                  
-    if 1==1:
-        (rhoclean,ugclean,uublob,maxbsqorhonear,maxbsqorhofar,condmaxbsqorho,condmaxbsqorhorhs,rinterp)=getrhouclean(rho,ug,uu)
-        cvel()                                                     
-        #                                                                                                            
-        diskcondition=condmaxbsqorho
-        # only around equator, not far away from equator                                                             
-        diskcondition=diskcondition*(bsq/rho<1.0)*(np.fabs(h-np.pi*0.5)<0.1)                                                                 
-        diskeqcondition=diskcondition                                                                                                                                                                       
-    #
-    ##############################
-    ###choose the radial extent of the plot
-    nxin=iofr(5)
-    nxout=iofr(40)
-    if IC:
-        ###using internal coordinates
-        myx=r[nxin:nxout,:,0]
-        myy=ph[nxin:nxout,:,0]
-        myz=h[nxin:nxout,:,0]
-    else:
-        ###use spherical polar
-        myx=r[nxin:nxout,ny//2,:]*np.sin(h[nxin:nxout,ny//2,:])*np.cos(ph[nxin:nxout,ny//2,:])                                      
-        myy=r[nxin:nxout,ny//2,:]*np.sin(h[nxin:nxout,ny//2,:])*np.sin(ph[nxin:nxout,ny//2,:])                                      
-        myz=r[nxin:nxout,ny//2,:]*np.cos(h[nxin:nxout,ny//2,:])
-    #############################
-    if stress:
-        numMag=jabs(-bu[1]*np.sqrt(gv3[1,1])*bd[3]*np.sqrt(gn3[3,3]))
-        denMR=(bsq*0.5+(gam-1.0)*ug)
-        amag=numMag/denMR
-        avgexists=checkiffullavgexists()
-        if avgexists==1:
-            loadavg()
-            loadedavg=1
-            numRey=jabs(rho*(uu[1]-avg_uu[1])*np.sqrt(gv3[1,1])*(ud[3]-avg_ud[3])*np.sqrt(gn3[3,3]))
-        else:
-            numRey=jabs(rho*(uu[1])*np.sqrt(gv3[1,1])*(ud[3])*np.sqrt(gn3[3,3]))
-        arey=numRey/denMR
-
-        myfun=r*amag#+arey                                                                                                                                                                      
-        myfun[myfun<=floor]=floor                                                                                   
-        myfun[myfun>=cap]=cap                                                                                       
-
-    else:
-        myfun=r*bu[2]*np.sqrt(gv3[2,2]) #quasi-orthonormal                                                                                                                                            
-        myfun[myfun<=floor]=floor
-        myfun[myfun>=cap]=cap
-    #                                                                          
-    #######################################                                                                          
-    ax = plt.gca()
-    ax.pcolor(myx,myy,myfun[nxin:nxout,ny//2,:],norm=[None,MidpointNormalize(midpoint=0)][ax>=1])  #try pcolormesh - faster                                               
-    plc(myfun[nxin:nxout,ny//2,:],xcoord=myx,ycoord=myy,ax=ax,cb=True,nc=50,norm=[None,MidpointNormalize(midpoint=0)][ax>=1]) #nc = number of contour
-    ax.grid(linestyle='-')
-    #print("cap="+str(cap))                                                                                          
-    #print("floor="+str(floor))
-    if stress:
-        plt.savefig('amag_f'+str(fnumber)+'phi'+str(phi)+'.png')
-    else:
-        plt.savefig('bz_f'+str(fnumber)+'phi'+str(phi)+'.png')
 
 ###################################
 #
@@ -3728,11 +3607,6 @@ def reinterpxy(vartointerp,extent,ncell,domask=1,interporder='cubic'):
     x=xraw[:,ny//2,:].view().reshape(-1)
     y=yraw[:,ny//2,:].view().reshape(-1)
     var=vartointerp[:,ny//2,:].view().reshape(-1)
-    #mirror
-    if nz*_dx3*dxdxp[3,3,0,0,0] < 0.99 * 2 * np.pi:
-        x=np.concatenate((-x,x))
-        y=np.concatenate((-y,y))
-        var=np.concatenate((var,var))
     # define grid.
     xi = np.linspace(extent[0], extent[1], ncell)
     yi = np.linspace(extent[2], extent[3], ncell)
@@ -3744,6 +3618,42 @@ def reinterpxy(vartointerp,extent,ncell,domask=1,interporder='cubic'):
         varinterpolated = ma.masked_where(interior, zi)
     else:
         varinterpolated = zi
+    return(varinterpolated)
+
+def reinterpxyz(vartointerp,b,ncell,domask=1,interporder='cubic'):
+    # Max's attempt at 3d interp 1/11/21
+    # todo: b is a new vairable in this so, add that in for every time this function is called
+
+    global xi, yi, zi, ai
+    xraw = r*np.sin(h)*np.cos(ph)
+    yraw = r*np.sin(h)*np.sin(ph)
+    zraw = r*np.cos(h)
+
+    #data out to radius r=sqrt(3)*b
+    rad = np.sqrt(3.0)*b #calculate the radius of a circle that a cube with side length 2*b will fit in
+    irad  = int(iofr(rad)) #find the index corresponding to rad - maybe do a slightly larger cube in case griddata needs points outside the region of interest?
+    x=xraw[0:irad,:,:].view().reshape(-1)
+    y=yraw[0:irad,:,:].view().reshape(-1)
+    z=zraw[0:irad,:,:].view().reshape(-1)
+    var=vartointerp[0:irad,:,:].view().reshape(-1)
+
+    extent = (-b,b,-b,b,-b,b)
+
+    # define grid.
+    xi = np.linspace(extent[0], extent[1], ncell)
+    yi = np.linspace(extent[2], extent[3], ncell)
+    zi = np.linspace(extent[4], extent[5], ncell)
+
+    # grid the data, adjusted FOR 3D
+    # points = np.array((x, y, z)).T # the first griddata argument, it looks like, must be in transposed like this
+    print("If you can see this, then at least it got to linspace. -Max 1/14")
+    ai = griddata((x,y,z), var, (xi[None,:,None], yi[:,None,None], zi[None,None,:]), method=interporder)
+
+    if domask!=0:
+        interior = np.sqrt((xi[None,:, None]**2) + (yi[:,None, None]**2)+ (zi[None,None,:]**2)) < (1+np.sqrt(1-a**2))*domask
+        varinterpolated = ma.masked_where(interior, ai)
+    else:
+        varinterpolated = ai
     return(varinterpolated)
 
 def reinterpxyhor(vartointerp,extent,ncell,domask=1,interporder='cubic'):
@@ -3777,6 +3687,43 @@ def reinterpxyhor(vartointerp,extent,ncell,domask=1,interporder='cubic'):
         varinterpolated = zi
     return(varinterpolated)
 
+def velinterp_3d(fnumber, rng, extent, ncell):
+    '''Max's attempt at a function which calls reinterpxyz() instead of reinterpxy()
+    1/11/2021'''
+    grid3d("gdump.bin",use2d=False)
+    #load the fieldline file for a given time and compute standard quantities
+    rfd("fieldline"+str(fnumber)+".bin")
+    cvel()
+    rhor=1+(1-a**2)**0.5
+    ihor=np.floor(iofr(rhor)+0.5)
+    #compute the 3-velocities in the equatorial slice
+    vr = dxdxp[1,1]*uu[1]/uu[0]+dxdxp[1,2]*uu[2]/uu[0]
+    vh = dxdxp[2,1]*uu[1]/uu[0]+dxdxp[2,2]*uu[2]/uu[0]
+    vp = uu[3]/uu[0]*dxdxp[3,3]
+    #
+    vrnorm=vr
+    vhnorm=vh*np.abs(r)
+    vpnorm=vp*np.abs(r*np.sin(h))
+    #
+    vznorm=vrnorm*np.cos(h)-vhnorm*np.sin(h)
+    vRnorm=vrnorm*np.sin(h)+vhnorm*np.cos(h)
+    vxnorm=vRnorm*np.cos(ph)-vpnorm*np.sin(ph)
+    vynorm=vRnorm*np.sin(ph)+vpnorm*np.cos(ph)
+    vRhor=vhnorm*np.cos(h)
+    vxhor=vRhor*np.cos(ph)-vpnorm*np.sin(ph)
+    vyhor=vRhor*np.sin(ph)+vpnorm*np.cos(ph)
+    #make uniform grid for velocity
+    # I put extent[1] here because this function takes the 'b' arg, not extent anymore -Max 1/22/21
+    ivx=reinterpxyz(vxnorm,extent[1],ncell,domask=1,interporder='linear')
+    ivx_h=reinterpxyhor(vxhor,extent,ncell,domask=1,interporder='linear')
+    ivx[ivx.mask==True]=ivx_h[ivx.mask==True]
+    # I put extent[1] here because this function takes the 'b' arg, not extent anymore -Max 1/22/21
+    ivy=reinterpxyz(vynorm,extent[1],ncell,domask=1,interporder='linear')
+    ivy_h=reinterpxyhor(vyhor,extent,ncell,domask=1,interporder='linear')
+    ivy[ivy.mask==True]=ivy_h[ivy.mask==True]
+
+    return ivx, ivy
+
 def velinterp(fnumber, rng, extent, ncell):
     grid3d("gdump.bin",use2d=True)
     #load the fieldline file for a given time and compute standard quantities
@@ -3800,7 +3747,7 @@ def velinterp(fnumber, rng, extent, ncell):
     vRhor=vhnorm*np.cos(h)
     vxhor=vRhor*np.cos(ph)-vpnorm*np.sin(ph)
     vyhor=vRhor*np.sin(ph)+vpnorm*np.cos(ph)
-    #make uniform grid for velocity                                            
+    #make uniform grid for velocity
     ivx=reinterpxy(vxnorm,extent,ncell,domask=1,interporder='linear')
     ivx_h=reinterpxyhor(vxhor,extent,ncell,domask=1,interporder='linear')
     ivx[ivx.mask==True]=ivx_h[ivx.mask==True]
@@ -3809,992 +3756,235 @@ def velinterp(fnumber, rng, extent, ncell):
     ivy[ivy.mask==True]=ivy_h[ivy.mask==True]
 
     return ivx, ivy
-
-###################################
-#
-# Magnetic field visualization functions
-#
-###################################
-def get_RT_seedpoints(fnumber, ncell):
-    grid3d("gdump.bin",use2d=True) #load the gdump.bin file - use2d=True to save memory
-    #make the spherical polar grid fully 3D
-    myr3d=mk2d3d(r)
-    myh3d=mk2d3d(h)
-    myph3d=mk2d3d(ph)
-    for k in range(0,nz):
-        myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
-    #compute cartesian coordinates for each grid point of the array
-    myx=myr3d*np.sin(myh3d)*np.cos(myph3d)
-    myy=myr3d*np.sin(myh3d)*np.sin(myph3d)
-    myz=myr3d*np.cos(myh3d)
-    myxeq=myx[:,ny//2,:]
-    myyeq=myy[:,ny//2,:]
-    myzeq=myz[:,ny//2,:]
-    #load the fieldline file for a given time and compute standard quantities
-    rfd("fieldline"+str(fnumber)+".bin")
-    cvel()
-    rhor=1+(1-a**2)**0.5
-    ihor=np.floor(iofr(rhor)+0.5)
-    #set parameters for the interpolation routine
-    rng=40.0
-    ncell=ncell
-    extent=(-rng,rng,-rng,rng)
-    #compute quantities used for masking (currently magnetic flux and inverse beta 2/24/16)
-    pg=(gam-1.0)*ug
-    myfun=0.5*bsq/pg #ibeta
-    mdot=gdet*uu[1]*_dx2*_dx3*rho
-    mdot_int=np.sum(np.abs(mdot[int(ihor),:,:])) # changed float to int (Max 12/21/20)
-
-    Br = dxdxp[1,1]*B[1]+dxdxp[1,2]*B[2]
-    Bh = dxdxp[2,1]*B[1]+dxdxp[2,2]*B[2]
-    Bp = B[3]*dxdxp[3,3]
+'''
+ -------------------------------------------------------------------------------
+Here are three helper functions that Max made.
+They exist because grid_3d, grid3d_load, and gridcellverts all take a long time
+to run. So this just initializes the important stuff pertaining to r, theata, and phi.
+ -------------------------------------------------------------------------------
+'''
+def grid3d_rhph(dumpname,use2d=False,doface=False,usethetarot0=False): #read grid dump file: header and body
+    # THIS IS A COPY of grid3d that only deals with r, h, and ph (Max 12/17)
     #
-    Brnorm=Br
-    Bhnorm=Bh*np.abs(r)
-    Bpnorm=Bp*np.abs(r*np.sin(h))
     #
-    Bznorm=Brnorm*np.cos(h)-Bhnorm*np.sin(h)
-    BRnorm=Brnorm*np.sin(h)+Bhnorm*np.cos(h)
-    #reinterpolate onto an evenly space grid on the equatorial plane
-    imyx=reinterpxy(myx,extent,ncell,domask=0,interporder='linear')
-    imyy=reinterpxy(myy,extent,ncell,domask=0,interporder='linear')
-    imyz=reinterpxy(myz,extent,ncell,domask=1,interporder='linear')
-    #replace z values that would be inside the black hole with those on the black hole horizon - need to not hard code this in case I change resolution
-    imyz[imyz.mask==True]=np.sqrt(rhor**2-imyx[imyz.mask==True]**2-imyy[imyz.mask==True]**2)
-
-    ivx0,ivy0=velinterp(fnumber, rng, extent,ncell)
-    ivx1,ivy1=velinterp(fnumber+1,rng,extent,ncell)    
-
-    #irho=reinterpxy(rho,extent,ncell,domask=1,interporder='linear')
-    #irho_h=reinterpxyhor(rho,extent,ncell,domask=1,interporder='linear')
-    #irho[irho.mask==True]=irho_h[irho.mask==True]
-
-    iBz=reinterpxy(Bznorm,extent,ncell,domask=1,interporder='linear')
-    iBr=reinterpxyhor(Bznorm,extent,ncell,domask=1, interporder='linear') #Brnorm is spherical, BRnorm is cylindrical; switching to Bznorm to keep transition to the disk continuous, has sign info
-
-    ahor=2.0*np.pi*(a**2+3*rhor**2)/3 #surface area of half of the horizon
-    BzH=5.0/ahor #Magnetic field per unit area on BH horizon, calculated from Upsilon value in Avara 2015
-    Bzfake=iBz*np.sqrt(imyx**2+imyy**2)/(rhor*np.sqrt(5.75)) #vertical magnetic field in the disk per unit area with radial dependence correction, Mdot=5.75 as in Avara 2015
-    Br=iBr/np.sqrt(5.75) #radial magnetic field on the horizon per unit area, Mdot=5.75 as in Avara 2015
-    Bzfake[iBz.mask==True]=Br[iBz.mask==True]#replace values that are inside the black hole in the equatorial plane with those in the upper half of the horizon
-    Bzfake1=Bzfake/BzH
-    Bzfake1=np.abs(Bzfake1)
-
-    #create mask using magnetic flux cutoff and apply it to the other relevant quantities (position)
-    msk1=ma.masked_where(Bzfake1>0.1,Bzfake1)
-    xmsk = imyx[msk1.mask==True]
-    ymsk = imyy[msk1.mask==True]
-    zmsk = imyz[msk1.mask==True]
-    Bmsk = Bzfake1[msk1.mask==True]
-    
-    #create an unnormalized probability function for B/sqrt(Mdot) to better choose relevant seedpoints; Bprob is 1D array from get_coordsw() while Bp_slice is 2D for python frames
-    Bp_slice=np.copy(Bzfake1)
-    bmin=0.1 #value of Bz that I want to set to 0 in probability distribution
-    bmax=np.max(Bp_slice) #value where the probability distribution goes to 1; value before 7/16 was 1.0
-    sl=1/(bmax-bmin)
-    yint=-bmin*sl
-    Bp_slice=sl*Bp_slice+yint #linear probability distribution between Bp=10 and Bp=100
-    print(sl, yint) #10/9, 1/9 for previous limits
-    Bp_slice[Bp_slice>1.0]=1.0
-    Bp_slice[Bp_slice<0.0]=0.0
-    Bprob=Bp_slice[msk1.mask==True]
-    ptot=np.sum(Bprob)
-    print(ptot)
-    grid=np.linspace(-rng, rng, ncell)    
-    prbmax=5985.0947770276025 #ptot for 7993
-    nsp=int(max(round(30*min(ptot/prbmax,1),0),15)) #m=30 is the maximum number of points
-    print('the number of seedpoints for this time is %d' % nsp)
-
-    previousseed=checkifseedpointexists(fnumber)
-
-    #Randomly select seedpoints by first finding coordinate points (x,y,z) then converting to grid spacing
-    if previousseed==1:
-        oldfile=np.load("snapshot/coords"+str(fnumber-1)+"_wv_hc.npz")
-        oldsamp=oldfile['cs']
-        oldhc=oldfile['hc']
-        oldfile.close()
-        lnc=int(len(oldsamp[:,0]))
-        prob_array=np.zeros(lnc)
-        newsamp=np.zeros((lnc,3))
-        newsamp[:,2]=oldsamp[:,2]
-        newhc=np.zeros(oldhc.shape)
-        delta_t=4.0
-        ax=(ivx1-ivx0)/delta_t
-        ay=(ivy1-ivy0)/delta_t
-        for n in range(0,lnc):
-            print(n)
-            xold=oldsamp[n,0]
-            yold=oldsamp[n,1]
-            rold=np.sqrt(xold**2+yold**2)
-            if rold>rhor:
-                omega=a/((2*rhor**2)*rold**3)
-            else:
-                omega=a/(2*rhor**2)
-            obperold=2*np.pi/omega
-            N=100*delta_t/obperold
-            print(N,rold,omega)
-            if N <1:
-                N=1
-            else:
-                N=int(round(N,0))
-            exec('x%s = np.zeros((N+1,2))' %n)
-            exec('x%s[0,0]=xold' %n)
-            exec('x%s[0,1]=yold' %n)
-            for i in range(1,N+1):
-                exec('x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n))
-            exec('newsamp[n,0]=x%s[N,0]' %n)
-            exec('newsamp[n,1]=x%s[N,1]' %n)
-            iofx=getnearpos(grid,newsamp[n,0])
-            jofy=getnearpos(grid,newsamp[n,1])
-            prob_array[n]=Bp_slice[jofy,iofx]
-            print("the probablity is %.2f" % prob_array[n])
-            if prob_array[n]<=0:
-                print("probability is too low, so the point is being replaced")
-                csnew=get_coordsw(xmsk,ymsk,zmsk.data,Bprob,1,fnumber,previousseed)
-                newsamp[n,:]=csnew[0,:]
-                iofx=getnearpos(grid,newsamp[n,0])
-                jofy=getnearpos(grid,newsamp[n,1])
-                prob_array[n]=Bp_slice[jofy,iofx]
-                print("the probability of the new point is %.2f" % prob_array[n])
-        for n in range(0,4):
-            xold=oldhc[n,0]
-            yold=oldhc[n,1]
-            rold=np.sqrt(xold**2+yold**2)
-            omega=a/(2*rhor**2)
-            obperold=2*np.pi/omega
-            N=100*delta_t/obperold
-            print(N,rold,omega)
-            if N <1:
-                N=1
-            else:
-                N=int(round(N,0))
-            exec('x%s = np.zeros((N+1,2))' %n)
-            exec('x%s[0,0]=xold' %n)
-            exec('x%s[0,1]=yold' %n)
-            for i in range(1,N+1):
-                exec('x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n))
-            exec('newhc[n,0]=x%s[N,0]' %n)
-            exec('newhc[n,1]=x%s[N,1]' %n)
-            newhc[n,2]=np.sqrt(rhor**2-(newhc[n,0]**2+newhc[n,1]**2))
-        if lnc>nsp:
-            print('the number of points has decreased by %d' %(lnc-nsp))
-            ta=np.hstack((newsamp,prob_array.reshape((lnc,1))))
-            ta=ta[ta[:,3].argsort()[::-1]]
-            newsamp=ta[0:nsp,0:3]
-            prob_array=ta[0:nsp,3]
-        elif lnc<nsp:
-            print('the number of points has increased by %d' %(nsp-lnc))
-            spn=nsp-lnc
-            csplus=get_coordsw(xmsk,ymsk,zmsk.data,Bprob,spn,fnumber,previousseed)
-            newsamp=np.concatenate((newsamp,csplus),axis=0)
-        else:
-            newsamp=newsamp
-        coords=open("snapshot/coords"+str(fnumber)+"_wv_hc.npz","w")
-        coords_sampled=newsamp
-        horcirc=newhc
-        np.savez(coords,cs=coords_sampled, prob=prob_array,hc=horcirc)
-        coords.close()
-    else:       
-        coords_sampled = get_coordsw(xmsk, ymsk, zmsk.data, Bprob, nsp, fnumber,previousseed)   
-        newsamp=coords_sampled
-        horcirc=np.zeros((4,3))
-        for i in range(0,4):
-            horcirc[i,0]=0.7*rhor*np.cos(i*0.5*np.pi)
-            horcirc[i,1]=0.7*rhor*np.sin(i*0.5*np.pi)
-            horcirc[i,2]=np.sqrt(rhor**2-(0.7*rhor)**2)
-        prob_array=np.zeros(len(newsamp))
-        for n in range(0,len(newsamp)):
-            iofx=getnearpos(grid,newsamp[n,0])
-            jofy=getnearpos(grid,newsamp[n,1])
-            prob_array[n]=Bp_slice[jofy,iofx]
-        coords=open("snapshot/coords"+str(fnumber)+"_wv_hc.npz","w")
-        np.savez(coords,cs=coords_sampled, prob=prob_array, hc=horcirc)
-        coords.close()
-    
-    #Make plots to use as movie frames
-    plt.clf()
-    plt.figure(1)
-    plt.pcolor(grid,grid,Bp_slice)
-    plt.colorbar()
-    #for n in range(1,int(len(newsamp[:,0]))):
-    #    exec 'plt.plot(x%s[:,0],x%s[:,1],"o")' %(n,n)
-    #plt.scatter(oldsamp[:,0],oldsamp[:,1],color='purple')
-    plt.scatter(newsamp[:,0],newsamp[:,1],color='fuchsia')
-    plt.scatter(horcirc[:,0],horcirc[:,1],color='yellow')
-    plt.xlim(-rng,rng)
-    plt.ylim(-rng,rng)
-    plt.title('Seedpoint propagation '+str(fnumber).zfill(4))
-    #plt.show()
-    # plt.savefig('snapshot/frames/seedprop'+str(fnumber).zfill(4)+'.png')
-    
-    # max made it return this (12/21/20)
-    return Brnorm, Bhnorm, Bpnorm
-
-#This might not work on windows, since it has the os.path stuff?
-def checkifseedpointexists(fnumber):
-    #
-    fname = 'snapshot/coords'+str(fnumber-1)+'_wv_hc.npz'
-    print(("checkifseedpointexists(): checking for fname=%s" % (fname))) ; sys.stdout.flush()
-    #
-    if os.path.isfile( fname ):
-        print(( "File %s exists" % fname ));sys.stdout.flush()
-        return(1)
+    if usethetarot0==True:
+        filename="dumps/gdump.THETAROT0.bin"
+        dumpname="gdump.THETAROT0.bin" # override input
     else:
-        print(( "File %s does not exist" % fname ));sys.stdout.flush()
-        return(0)
-
-def get_coordsw(x,y,z,flux,m,fnumber,previousseed):
-    '''Chooses a random sampling from a list of all coordinates (in Cartesian coordinates) that meet a certain qualification, weighted by magnetic flux'''
-    """Megan added 9/17/15; updated 12/3/15"""
-    coords_sampled=np.array([[0,0,0]])
-    #create total probability
-    prb=flux
-    #normalize the flux*beta probability array
-    ptot=np.sum(prb)
-    prb=prb/ptot
-
-    a=len(prb)
-    #creates an ordered array of normalized probability ranging from 0-1 so bin size is proportional to the quantity in question
-    for i in range(1,a):
-        prb[i]=prb[i-1]+prb[i]
-
-    #adjust the number of seedpoints chosen to represent how the total probability changes with time (prbmax is highest/close to highest prb(t))
-    #trying uniform sampling at initial time then random for filling in new points
-    if previousseed==0:
-        samp=np.random.uniform(0,1,m)
-        print("uniform sampling used")
+        filename="dumps/gdump.bin"
+        # just use input dumpname
+    #
+    if os.path.isfile(filename):
+        # only need header of true gdump.bin to get true THETAROT
+        rfdheaderonly(filename)
     else:
-        samp=np.random.random_sample(m)
-        print("random sampling used")
-    #choose nsp seedpoints based on the probability array
-    for i in range(0,m):
-        if samp[i]<=prb[0]:
-            print("the flux for this point is %.2d" % flux[0])
-            c=np.array([[x[0],y[0],z[0]]])
-            coords_sampled=np.concatenate((coords_sampled,c),axis=0)
-        else:
-            for j in range(1,a):
-                if prb[j-1]<=samp[i]<=prb[j]:
-                    print("the flux for this point is %.2d" % flux[j])
-                    c=np.array([[x[j],y[j],z[j]]])
-                    coords_sampled=np.concatenate((coords_sampled,c),axis=0)
-
-    coords_sampled=np.delete(coords_sampled,(0),axis=0)
-    return coords_sampled
-
-def propagate_seeds(xold,yold,ivx,ivy,ax,ay,grid,N,t, ncell):
-    '''propagate x, y forward in time until get to delta_t'''
-    iofxold=getnearpos(grid,xold)
-    jofyold=getnearpos(grid,yold)
-    vx=ax*(t/N)+ivx
-    vy=ay*(t/N)+ivy
-    if iofxold==0 or iofxold==int(ncell-1) or jofyold==0 or jofyold==int(ncell-1):
-        vxbar=vx[jofyold,iofxold]
-        vybar=vy[jofyold,iofxold]
-    else:
-        vxbar=np.sum(vx[jofyold-1:jofyold+2,iofxold-1:iofxold+2])/9.0
-        vybar=np.sum(vy[jofyold-1:jofyold+2,iofxold-1:iofxold+2])/9.0
-    xnew=xold+vxbar*(t/N)
-    ynew=yold+vybar*(t/N)
-
-    return xnew, ynew
-
-def zoomvideo(fnumber,ncell):
-    grid3d("gdump.bin",use2d=True) #load the gdump.bin file - use2d=True to save memory
-    #make the spherical polar grid fully 3D
-    myr3d=mk2d3d(r)
-    myh3d=mk2d3d(h)
-    myph3d=mk2d3d(ph)
-    for k in range(0,nz):
-        myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
-    #compute cartesian coordinates for each grid point of the array
-    myx=myr3d*np.sin(myh3d)*np.cos(myph3d)
-    myy=myr3d*np.sin(myh3d)*np.sin(myph3d)
-    #load the fieldline file for a given time and compute standard quantities
-    rfd("fieldline"+str(fnumber)+".bin")
-    cvel()
-    rhor=1+(1-a**2)**0.5
-    ihor=np.floor(iofr(rhor)+0.5)
-    pg=(gam-1.0)*ug
-    #set parameters for the interpolation routine
-    rng=25.0
-    ncell=ncell
-    extent=(-rng,rng,-rng,rng)
-    #compute quantities used for masking (currently magnetic flux and inverse beta 2/24/16)
-    '''Br = dxdxp[1,1]*B[1]+dxdxp[1,2]*B[2]
-    Bh = dxdxp[2,1]*B[1]+dxdxp[2,2]*B[2]
-    Bp = B[3]*dxdxp[3,3]
+        # if no gdump, use last fieldline file that is assumed to be consistent with gdump that didn't exist.
+        # allows non-creation of gdump if restarting with tilt from non-tilt run.  So then enver have to have gdump.bin with THETAROT tilt.
+        rfdheaderlastfile()
     #
-    Brnorm=Br
-    Bhnorm=Bh*np.abs(r)
-    Bpnorm=Bp*np.abs(r*np.sin(h))
+    # for rfd() to use to see if different nz size
+    global nzgdumptrue
+    nzgdumptrue=nz
+
+    # keeping only the global vars we need for calculations
+    global nxgdump,nygdump,nzgdump,THETAROTgdump
+    nxgdump=nx
+    nygdump=ny
+    nzgdump=nz
+    THETAROTgdump=THETAROT
+
+    realdumpname=dumpname
     #
-    Bznorm=Brnorm*np.cos(h)-Bhnorm*np.sin(h)
-    #reinterpolate onto an evenly space grid on the equatorial plane
-    imyx=reinterpxy(myx,extent,ncell,domask=0,interporder='linear')
-    imyy=reinterpxy(myy,extent,ncell,domask=0,interporder='linear')
-
-    iBz=reinterpxy(Bznorm,extent,ncell,domask=1,interporder='linear')
-    iBr=reinterpxyhor(Bznorm,extent,ncell,domask=1, interporder='linear') #Brnorm is spherical, BRnorm is cylindrical; switching to Bznorm to keep transition to the disk continuous, has sign info                 
-    ahor=2.0*np.pi*(a**2+3*rhor**2)/3 #surface area of half of the horizon
-    BzH=5.0/ahor #Magnetic field per unit area on BH horizon, calculated from Upsilon value in Avara 2015
-    Bzfake=iBz*np.sqrt(imyx**2+imyy**2)/(rhor*np.sqrt(5.75)) #vertical magnetic field in the disk per unit area with radial dependence correction, Mdot=5.75 as in Avara 2015
-    Br=iBr/np.sqrt(5.75) #radial magnetic field on the horizon per unit area, Mdot=5.75 as in Avara 2015
-    Bzfake[iBz.mask==True]=Br[iBz.mask==True]#replace values that are inside the black hole in the equatorial plane with those in the upper half of the horizon
-    Bzfake1=Bzfake/BzH
-    Bzfake1=np.abs(Bzfake1)
-    #create an unnormalized probability function for B/sqrt(Mdot) to better choose relevant seedpoints; Bprob is 1D array from get_coordsw() while Bp_slice is 2D for python frames
-    Bp_slice=np.copy(Bzfake1)
-    bmin=0.1 #value of Bz that I want to set to 0 in probability distribution
-    bmax=np.max(Bp_slice) #value where the probability distribution goes to 1; value before 7/16 was 1.0
-    sl=1/(bmax-bmin)
-    yint=-bmin*sl
-    Bp_slice=sl*Bp_slice+yint #linear probability distribution between Bz=0.1 and Bz=1.0
-    Bp_slice[Bp_slice>1.0]=1.0
-    Bp_slice[Bp_slice<0.0]=0.0'''
-    irho=reinterpxy(rho,extent,ncell,domask=1,interporder='linear')
-    irho_h=reinterpxyhor(rho,extent,ncell,domask=1,interporder='linear')
-    irho[irho.mask==True]=irho_h[irho.mask==True]
-
-    lrho=np.log10(rho)
-    ilrho=reinterpxy(lrho,extent,ncell,domask=1,interporder='linear')
-    ilrho_hor=reinterpxyhor(lrho,extent,ncell,domask=1, interporder='linear')
-    ilrho[ilrho.mask==True]=ilrho_hor[ilrho.mask==True]
-
-    ibeta=0.5*bsq/pg
-    i_ibeta=reinterpxy(ibeta,extent,ncell,domask=1,interporder='linear')
-    i_ibeta_h=reinterpxyhor(ibeta,extent,ncell,domask=1,interporder='linear')
-    i_ibeta[i_ibeta.mask==True]=i_ibeta_h[i_ibeta.mask==True]
-
-    '''cf=np.load("aug3/coords"+str(fnumber)+"_wv_hc.npz")
-    cs=cf['cs']
-    hc=cf['hc']
-    cf.close()'''
-    grid=np.linspace(-rng, rng, ncell)
-    #Make plots to use as movie frames
-    plt.clf()
-    plt.figure(1)
-    plt.pcolor(grid,grid,ilrho)
-    plt.colorbar()
-    #plt.scatter(cs[:,0],cs[:,1],color='fuchsia')
-    #plt.scatter(hc[:,0],hc[:,1],color='yellow')
-    #horcir=plt.Circle((0,0),2.5,color='r',fill=False)
-    #plt.gcf().gca().add_artist(horcir)
-    plt.xlim(-rng,rng)
-    plt.ylim(-rng,rng)
-    plt.xlabel(r"$x [r_g]$",ha='center',labelpad=0,fontsize=14)
-    plt.ylabel(r"$y [r_g]$",ha='left',labelpad=0,fontsize=14)
-    #plt.title('Inner Region '+str(fnumber).zfill(4))
-    plt.savefig('ibeta'+str(fnumber).zfill(4)+'.png')
-
-def addhorcirc(fnumber, ncell):
-    grid3d("gdump.bin",use2d=True) #load the gdump.bin file - use2d=True to save memory
-    #make the spherical polar grid fully 3D
-    myr3d=mk2d3d(r)
-    myh3d=mk2d3d(h)
-    myph3d=mk2d3d(ph)
-    for k in range(0,nz):
-        myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
-    #compute cartesian coordinates for each grid point of the array
-    myx=myr3d*np.sin(myh3d)*np.cos(myph3d)
-    myy=myr3d*np.sin(myh3d)*np.sin(myph3d)
-    myz=myr3d*np.cos(myh3d)
-    myxeq=myx[:,ny//2,:]
-    myyeq=myy[:,ny//2,:]
-    myzeq=myz[:,ny//2,:]
-    #load the fieldline file for a given time and compute standard quantities
-    rfd("fieldline"+str(fnumber)+".bin")
-    cvel()
-    rhor=1+(1-a**2)**0.5
-    ihor=np.floor(iofr(rhor)+0.5)
-    #set parameters for the interpolation routine
-    rng=40.0
-    ncell=ncell
-    extent=(-rng,rng,-rng,rng)
-    #compute quantities used for masking (currently magnetic flux and inverse beta 2/24/16)
-    pg=(gam-1.0)*ug
-    myfun=0.5*bsq/pg #ibeta
-    mdot=gdet*uu[1]*_dx2*_dx3*rho
-    mdot_int=np.sum(np.abs(mdot[ihor,:,:]))
-
-    Br = dxdxp[1,1]*B[1]+dxdxp[1,2]*B[2]
-    Bh = dxdxp[2,1]*B[1]+dxdxp[2,2]*B[2]
-    Bp = B[3]*dxdxp[3,3]
+    print(( "realdumpname=%s" % (realdumpname) )) ; sys.stdout.flush()
     #
-    Brnorm=Br
-    Bhnorm=Bh*np.abs(r)
-    Bpnorm=Bp*np.abs(r*np.sin(h))
+    # load axisymmetric metric-grid data
+    # this sets THETAROT=0 if THETAROT true is non-zero.  rfd() is responsible for setting THETAROT for each fieldline file so data inputted is transformed/interpolated correctly.
+    grid3d_load(dumpname=realdumpname,doface=doface,loadsimple=False)
     #
-    Bznorm=Brnorm*np.cos(h)-Bhnorm*np.sin(h)
-    BRnorm=Brnorm*np.sin(h)+Bhnorm*np.cos(h)
-    #reinterpolate onto an evenly space grid on the equatorial plane
-    imyx=reinterpxy(myx,extent,ncell,domask=0,interporder='linear')
-    imyy=reinterpxy(myy,extent,ncell,domask=0,interporder='linear')
-    imyz=reinterpxy(myz,extent,ncell,domask=1,interporder='linear')
-    #replace z values that would be inside the black hole with those on the black hole horizon - need to not hard code this in case I change resolution
-    imyz[imyz.mask==True]=np.sqrt(rhor**2-imyx[imyz.mask==True]**2-imyy[imyz.mask==True]**2)
-
-    ivx0,ivy0=velinterp(fnumber, rng, extent,ncell)
-    ivx1,ivy1=velinterp(fnumber+1,rng,extent,ncell)
-
-    iBz=reinterpxy(Bznorm,extent,ncell,domask=1,interporder='linear')
-    iBr=reinterpxyhor(Bznorm,extent,ncell,domask=1, interporder='linear') #Brnorm is spherical, BRnorm is cylindrical; switching to Bznorm to keep transition to the disk continuous, has sign info
-
-    ahor=2.0*np.pi*(a**2+3*rhor**2)/3 #surface area of half of the horizon
-    BzH=5.0/ahor #Magnetic field per unit area on BH horizon, calculated from Upsilon value in Avara 2015
-    Bzfake=iBz*np.sqrt(imyx**2+imyy**2)/(rhor*np.sqrt(5.75)) #vertical magnetic field in the disk per unit area with radial dependence correction, Mdot=5.75 as in Avara 2015
-    Br=iBr/np.sqrt(5.75) #radial magnetic field on the horizon per unit area, Mdot=5.75 as in Avara 2015
-    Bzfake[iBz.mask==True]=Br[iBz.mask==True]#replace values that are inside the black hole in the equatorial plane with those in the upper half of the horizon
-    Bzfake1=Bzfake/BzH
-    Bzfake1=np.abs(Bzfake1)
-    
-    #create an unnormalized probability function for B/sqrt(Mdot) to better choose relevant seedpoints; Bprob is 1D array from get_coordsw() while Bp_slice is 2D for python frames
-    Bp_slice=np.copy(Bzfake1)
-    bmin=0.1 #value of Bz that I want to set to 0 in probability distribution
-    bmax=np.max(Bp_slice) #value where the probability distribution goes to 1; value before 7/16 was 1.0                                                   
-    sl=1/(bmax-bmin)
-    yint=-bmin*sl
-    Bp_slice=sl*Bp_slice+yint #linear probability distribution between Bz=0.1 and Bz=1.0
-    Bp_slice[Bp_slice>1.0]=1.0
-    Bp_slice[Bp_slice<0.0]=0.0
-    grid=np.linspace(-rng, rng, ncell)
-    #stress terms (added 8/11/16)
-    tiny = np.finfo(rho.dtype).tiny
-    denfactor=rholab
-    diskcondition=condmaxbsqorho
-    keywordsrhosq={'which': diskcondition}
-    rhosqint=intangle(gdet*denfactor,doavgn3=0,**keywordsrhosq)+tiny
-    #alphamag3[qindex]=intangle(gdet*jabs(-bu[1]*np.sqrt(gv3[1,1])*bd[3]*np.sqrt(gn3[3,3]))/(bsq*0.5+(gam-1.0)*ug)*denfactor,**keywordsrhosq)/rhosqint                                                       
-    # do averaging as in Hawley et al. (2010) assessing paper                                                                                                                                                
-    numer=intangle(gdet*jabs(-bu[1]*np.sqrt(gv3[1,1])*bd[3]*np.sqrt(gn3[3,3]))*denfactor,doavgn3=0,**keywordsrhosq)/rhosqint
-    denom=intangle(gdet*(bsq*0.5+(gam-1.0)*ug)*denfactor,doavgn3=0,**keywordsrhosq)/rhosqint
-    alphamag=numer/denom
-
-    '''previousseed=checkifseedpointexists(fnumber)
-
-    #Randomly select seedpoints by first finding coordinate points (x,y,z) then converting to grid spacing
-    if previousseed==1:
-        oldfile=np.load("aug3/coords"+str(fnumber-1)+"_wv_hc.npz")
-        cf=np.load("july20/75circle/coords"+str(fnumber)+"_wv_hc.npz")
-        coords_sampled=cf['cs']
-        prob_array=cf['prob']
-        oldhc=oldfile['hc']
-        #oldhc2=oldfile['hc2']
-        oldfile.close()
-        cf.close()
-        newhc=np.zeros(oldhc.shape)
-        delta_t=4.0
-        ax=(ivx1-ivx0)/delta_t
-        ay=(ivy1-ivy0)/delta_t
-        for n in range(0,4):
-            xold=oldhc[n,0]
-            yold=oldhc[n,1]
-            rold=np.sqrt(xold**2+yold**2)
-            omega=a/(2*rhor**2)
-            obperold=2*np.pi/omega
-            N=100*delta_t/obperold
-            if N <1:
-                N=1
-            else:
-                N=int(round(N,0))
-            exec 'x%s = np.zeros((N+1,2))' %n
-            exec 'x%s[0,0]=xold' %n
-            exec 'x%s[0,1]=yold' %n
-            for i in range(1,N+1):
-                exec 'x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n)
-            exec 'newhc[n,0]=x%s[N,0]' %n
-            exec 'newhc[n,1]=x%s[N,1]' %n
-            newhc[n,2]=np.sqrt(rhor**2-(newhc[n,0]**2+newhc[n,1]**2))
-        coords=open("aug3/coords"+str(fnumber)+"_wv_hc.npz","w")
-        horcirc=newhc
-        #horcirc2=oldhc2
-        np.savez(coords,cs=coords_sampled, prob=prob_array,hc=horcirc)
-        coords.close()
-    else:
-        cf=np.load('july20/75circle/coords'+str(fnumber)+'_wv_hc.npz','w')
-        coords_sampled=cf['cs']
-        prob_array=cf['prob']
-        #horcirc=cf['hc']
-        cf.close()
-        #coords_sampled = get_coordsw(xmsk, ymsk, zmsk.data, Bprob, nsp, fnumber,previousseed)  
-        #newsamp=coords_sampled
-        horcirc=np.zeros((4,3))
-        for i in range(0,4):
-            horcirc[i,0]=0.7*rhor*np.cos(i*0.5*np.pi)
-            horcirc[i,1]=0.7*rhor*np.sin(i*0.5*np.pi)
-            horcirc[i,2]=np.sqrt(rhor**2-(0.7*rhor)**2)
-        #prob_array=np.zeros(len(newsamp))
-        #for n in range(0,len(newsamp)):
-        #    iofx=getnearpos(grid,newsamp[n,0])
-        #    jofy=getnearpos(grid,newsamp[n,1])
-        #    prob_array[n]=Bp_slice[jofy,iofx]
-        coords=open("aug3/coords"+str(fnumber)+"_wv_hc.npz","w")
-        np.savez(coords,cs=coords_sampled, prob=prob_array, hc=horcirc)
-        coords.close()'''
-    
-    #Make plots to use as movie frames
-    '''plt.clf()
-    plt.figure(2)
-    plt.pcolor(grid,grid,Bp_slice)
-    plt.colorbar()
-    #plt.scatter(oldhc[:,0],oldhc[:,1],color='purple')
-    plt.scatter(coords_sampled[:,0],coords_sampled[:,1],color='fuchsia')
-    #for n in range(0,int(len(newhc[:,0]))):                              
-    #    exec 'plt.plot(x%s[:,0],x%s[:,1],"o")' %(n,n)
-    plt.scatter(horcirc[:,0],horcirc[:,1],color='yellow')
-    #plt.scatter(horcirc2[:,0],horcirc[:,1],color='green')
-    plt.xlim(-rng,rng)
-    plt.ylim(-rng,rng)
-    plt.title('Seedpoint propagation '+str(fnumber).zfill(4))
-    plt.savefig('aug3/frames/seedprop'+str(fnumber).zfill(4)+'.png')'''
-    
-    return alphamag
-
-###################################
-#
-# Functions for stress calculations
-#
-###################################
-def stressvtime(fnumber):
-    # first load grid file
-    global use2dglobal
-    use2dglobal=True
-    grid3d("gdump.bin", use2d=use2dglobal)
-    # now try loading a single fieldline file
-    rfd("fieldline"+str(fnumber).zfill(4)+".bin")
-    # now plot something you read-in
-    #plt.clf()
-    #plt.figure(1)
-    ###############################
-    (rhoclean,ugclean,uublob,maxbsqorhonear,maxbsqorhofar,condmaxbsqorho,condmaxbsqorhorhs,rinterp)=getrhouclean(rho,ug,uu)
-    cvel()
-    rhor=1+(1-a**2)**0.5
-    ihor=int(iofr(rhor))
-    pg=(gam-1.0)*ug
-    # 
-    diskcondition=condmaxbsqorho
-    # only around equator, not far away from equator
-    diskcondition=diskcondition*(bsq/rho<1.0)*(np.fabs(h-np.pi*0.5)<0.1)
-    diskeqcondition=diskcondition
-    ##############################
-    ###choose the radial extent of the plot
-    nxin=int(iofr(2.5))
-    nxout=int(iofr(25))
-    ###choose extent in r,theta:
-    hoverr=0.1
-    hmin=np.pi/2 - hoverr
-    hmax=np.pi/2 + hoverr
-    mhin=int(jofh(hmin,nxout))
-    mhout=int(jofh(hmax,nxout))
-
-    loadavg()
-    ###integrated stress
-    ibeta=0.5*bsq/pg #for masking
-    br=bu[1]*np.sqrt(gv3[1,1])
-    brpert=(bu[1]-avg_bu[1])*np.sqrt(gv3[1,1])
-    bz=-bu[2]*np.sqrt(gv3[2,2])
-    bzpert=-(bu[2]-avg_bu[2])*np.sqrt(gv3[2,2])
-    bphi=bd[3]*np.sqrt(gn3[3,3])
-    bphipert=(bd[3]-avg_bd[3])*np.sqrt(gn3[3,3])
-
-    integrand_rp=-br*bphi*gdet*_dx1*_dx2*_dx3
-    integrand_rp_pert=-brpert*bphipert*gdet*_dx1*_dx2*_dx3
-    bubble_rp=ma.masked_where(ibeta<10,integrand_rp)
-    disk_rp=ma.masked_where(ibeta>=10,integrand_rp)
-    nummagrp_in=np.sum(bubble_rp[nxin:nxout,mhin:mhout,:])
-    nummagrp_out=np.sum(disk_rp[nxin:nxout,mhin:mhout,:])
-    bubble_rp_pert=ma.masked_where(ibeta<10,integrand_rp_pert)
-    disk_rp_pert=ma.masked_where(ibeta>=10,integrand_rp_pert)
-    nummagrp_pert_in=np.sum(bubble_rp_pert[nxin:nxout,mhin:mhout,:])
-    nummagrp_pert_out=np.sum(disk_rp_pert[nxin:nxout,mhin:mhout,:])
-
-    integrand_zp=-bz*bphi*gdet*_dx1*_dx2*_dx3
-    bubble_zp=ma.masked_where(ibeta<40,integrand_zp)
-    disk_zp=ma.masked_where(ibeta>=40,integrand_zp)
-    nummagzp_in=np.sum(bubble_zp[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp[nxin:nxout,mhin:ny/2,:])
-    nummagzp_out=np.sum(disk_zp[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp[nxin:nxout,mhin:ny/2,:])
-    integrand_zp_pert=-bzpert*bphipert*gdet*_dx1*_dx2*_dx3
-    bubble_zp_pert=ma.masked_where(ibeta<40,integrand_zp_pert)
-    disk_zp_pert=ma.masked_where(ibeta>=40,integrand_zp_pert)
-    nummagzp_pert_in=np.sum(bubble_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_pert[nxin:nxout,mhin:ny//2,:])
-    nummagzp_pert_out=np.sum(disk_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny//2,:])
-
-    ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
-    integrand_denom=ptot*gdet*_dx1*_dx2*_dx3
-    denom=np.sum(integrand_denom[nxin:nxout,mhin:mhout,:])
-    
-    ###masked quantities for plotting
-    brmsk=ma.masked_where(ibeta<40,br)
-    bzmsk=ma.masked_where(ibeta<40,bz)
-    bphimsk=ma.masked_where(ibeta<40,bphi)
-
-    ###normalized stress in/out of bubble
-    alphamagrp_bubble=nummagrp_in/denom
-    alphamagrp_disk=nummagrp_out/denom
-    alphamagrp_pert_bubble=nummagrp_pert_in/denom
-    alphamagrp_pert_disk=nummagrp_pert_out/denom
-
-    alphamagzp_bubble=nummagzp_in/denom
-    alphamagzp_disk=nummagzp_out/denom
-    alphamagzp_pert_bubble=nummagzp_pert_in/denom
-    alphamagzp_pert_disk=nummagzp_pert_out/denom
-
-    ###total stress
-    nummagrp=np.sum(integrand_rp[nxin:nxout,mhin:mhout,:])
-    nummagrp_pert=np.sum(integrand_rp_pert[nxin:nxout,mhin:mhout,:])
-    alphamagrp=nummagrp/denom
-    alphamagrp_pert=nummagrp_pert/denom
-
-    nummagzp=np.sum(integrand_zp[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp[nxin:nxout,mhin:ny//2,:])
-    nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny//2,:])
-    alphamagzp=nummagzp/denom
-    alphamagzp_pert=nummagzp_pert/denom
-    print(alphamagrp_bubble, alphamagrp_disk)
-    
-    '''myfun=(-br*bphi)*r**2/np.average(ptot[ihor,ny/2,:])
-    myfun[myfun>3]=3
-    myfun[myfun<-3]=-3
-    ###########################
-    ###using slice through equatorial plane
-    xy_x=r[nxin:nxout,ny/2,:]*np.sin(h[nxin:nxout,ny/2,:])*np.cos(ph[nxin:nxout,ny/2,:])
-    myy=r[nxin:nxout,ny/2,:]*np.sin(h[nxin:nxout,ny/2,:])*np.sin(ph[nxin:nxout,ny/2,:])
-    ###plot of myfun in xy plane 
-    plt.figure(1)
-    plt.clf()
-    ax = plt.gca()
-    ax.pcolor(xy_x,myy,myfun[nxin:nxout,ny/2,:])
-    plc(myfun[nxin:nxout,ny/2,:],xcoord=xy_x,ycoord=myy,ax=ax,cb=True,nc=50)
-    ax.grid(linestyle='-')
-    plt.xlabel(r"$x [r_g]$",ha='center',labelpad=0,fontsize=14)
-    plt.ylabel(r"$y [r_g]$",ha='left',labelpad=20,fontsize=14)
-    plt.savefig('amag'+str(fnumber)+'.png')'''
-
-    return fnumber, alphamagrp_bubble, alphamagrp_pert_bubble, alphamagrp_disk, alphamagrp_pert_disk, alphamagzp_bubble, alphamagzp_pert_bubble, alphamagzp_disk, alphamagzp_pert_disk
-    #return ibeta, rho
-
-def stressdecompvtime(fnumber):
-    # first load grid file
-    global use2dglobal
-    use2dglobal=True
-    grid3d("gdump.bin", use2d=use2dglobal)
-    # now try loading a single fieldline file
-    rfd("fieldline"+str(fnumber).zfill(4)+".bin")
-    ###############################
-    (rhoclean,ugclean,uublob,maxbsqorhonear,maxbsqorhofar,condmaxbsqorho,condmaxbsqorhorhs,rinterp)=getrhouclean(rho,ug,uu)
-    cvel()
-    rhor=1+(1-a**2)**0.5
-    ihor=int(iofr(rhor))
-    pg=(gam-1.0)*ug
-    # 
-    diskcondition=condmaxbsqorho
-    #only around equator, not far away from equator
-    diskcondition=diskcondition*(bsq/rho<1.0)*(np.fabs(h-np.pi*0.5)<0.1)
-    diskeqcondition=diskcondition
-    ##############################
-    ###choose the radial extent of the plot
-    nxin=int(iofr(2.5))
-    nxout=int(iofr(25))
-    ###choose extent in r,theta:
-    hoverr=0.1
-    hmin=np.pi/2 - hoverr
-    hmax=np.pi/2 + hoverr
-    mhin=int(jofh(hmin,nxout))
-    mhout=int(jofh(hmax,nxout))
-
-    loadavg()
-    ###integrated stress
-    ibeta=0.5*bsq/pg #for masking
-    ##magnetic field decomposition into mean field and turbulent terms
-    br=bu[1]*np.sqrt(gv3[1,1])
-    brmean=avg_bu[1]*np.sqrt(gv3[1,1])
-    brpert=(bu[1]-avg_bu[1])*np.sqrt(gv3[1,1])
-    
-    bz=-bu[2]*np.sqrt(gv3[2,2]) #minus sign because theta hat points in -z hat direction
-    bzmean=-avg_bu[2]*np.sqrt(gv3[2,2])
-    bzpert=-(bu[2]-avg_bu[2])*np.sqrt(gv3[2,2])
-    
-    bphi=bd[3]*np.sqrt(gn3[3,3])
-    bphimean=avg_bd[3]*np.sqrt(gn3[3,3])
-    bphipert=(bd[3]-avg_bd[3])*np.sqrt(gn3[3,3])
-    ##integrands for the radial total stress and the 4 terms that make it
-    integrand_rp=-br*bphi*gdet*_dx1*_dx2*_dx3
-    integrand_rp_mean=-brmean*bphimean*gdet*_dx1*_dx2 #avg terms are 2d (r and theta), so don't integrate over phi
-    integrand_rp_cross1=-brmean*bphipert*gdet*_dx1*_dx2*_dx3
-    integrand_rp_cross2=-brpert*bphimean*gdet*_dx1*_dx2*_dx3
-    integrand_rp_pert=-brpert*bphipert*gdet*_dx1*_dx2*_dx3
-    ##masking and integrating
-    #total stress
-    bubble_rp_tot=ma.masked_where(ibeta<40,integrand_rp)
-    disk_rp_tot=ma.masked_where(ibeta>=40,integrand_rp)
-    nummagrp_bub_tot=np.sum(bubble_rp_tot[nxin:nxout,mhin:mhout,:])
-    nummagrp_disk_tot=np.sum(disk_rp_tot[nxin:nxout,mhin:mhout,:])
-    '''#mean field component - masking not working because avg2d averages in phi, so no good way to get 1D ibeta
-    bubble_rp_mean=ma.masked_where(ibeta[:,ny/2,:]<40,integrand_rp_mean)
-    disk_rp_mean=ma.masked_where(ibeta[:,ny/2,:]>=40,integrand_rp_mean)
-    nummagrp_bub_mean=np.sum(bubble_rp_mean[nxin:nxout,mhin:mhout,:])
-    nummagrp_disk_mean=np.sum(disk_rp_mean[nxin:nxout,mhin:mhout,:])'''
-    #mean radial, turbulent phi
-    bubble_rp_cross1=ma.masked_where(ibeta<40,integrand_rp_cross1)
-    disk_rp_cross1=ma.masked_where(ibeta>=40,integrand_rp_cross1)
-    nummagrp_bub_cross1=np.sum(bubble_rp_cross1[nxin:nxout,mhin:mhout,:])
-    nummagrp_disk_cross1=np.sum(disk_rp_cross1[nxin:nxout,mhin:mhout,:])
-    #turbulent radial, mean phi
-    bubble_rp_cross2=ma.masked_where(ibeta<40,integrand_rp_cross2)
-    disk_rp_cross2=ma.masked_where(ibeta>=40,integrand_rp_cross2)
-    nummagrp_bub_cross2=np.sum(bubble_rp_cross2[nxin:nxout,mhin:mhout,:])
-    nummagrp_disk_cross2=np.sum(disk_rp_cross2[nxin:nxout,mhin:mhout,:])
-    #both turbulent
-    bubble_rp_pert=ma.masked_where(ibeta<40,integrand_rp_pert)
-    disk_rp_pert=ma.masked_where(ibeta>=40,integrand_rp_pert)
-    nummagrp_bub_pert=np.sum(bubble_rp_pert[nxin:nxout,mhin:mhout,:])
-    nummagrp_disk_pert=np.sum(disk_rp_pert[nxin:nxout,mhin:mhout,:])
-
-    ##integrands for the vertical total stress and the 4 terms that make it
-    integrand_zp=-bz*bphi*gdet*_dx1*_dx2*_dx3
-    integrand_zp_mean=-bzmean*bphimean*gdet*_dx1*_dx2 #avg terms are 2d (r and theta), so don't integrate over phi
-    integrand_zp_cross1=-bzmean*bphipert*gdet*_dx1*_dx2*_dx3
-    integrand_zp_cross2=-bzpert*bphimean*gdet*_dx1*_dx2*_dx3
-    integrand_zp_pert=-bzpert*bphipert*gdet*_dx1*_dx2*_dx3
-    ##masking and integrating
-    #total stress
-    bubble_zp_tot=ma.masked_where(ibeta<40,integrand_zp)
-    disk_zp_tot=ma.masked_where(ibeta>=40,integrand_zp)
-    nummagzp_bub_tot=np.sum(bubble_zp_tot[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_tot[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_tot=np.sum(disk_zp_tot[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_tot[nxin:nxout,mhin:ny//2,:])
-    '''#mean field - masking not working because avg2d averages in phi, so no good way to get 1D ibeta
-    bubble_zp_mean=ma.masked_where(ibeta[:,ny/2,:]<40,integrand_zp_mean)
-    disk_zp_mean=ma.masked_where(ibeta[:,ny/2,:]>=40,integrand_zp_mean)
-    nummagzp_bub_mean=np.sum(bubble_zp_mean[nxin:nxout,ny/2:mhout,:])-np.sum(bubble_zp_mean[nxin:nxout,mhin:ny/2,:])
-    nummagzp_disk_mean=np.sum(disk_zp_mean[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_mean[nxin:nxout,mhin:ny/2,:])'''
-    #mean vertical, turbulent phi
-    bubble_zp_cross1=ma.masked_where(ibeta<40,integrand_zp_cross1)
-    disk_zp_cross1=ma.masked_where(ibeta>=40,integrand_zp_cross1)
-    nummagzp_bub_cross1=np.sum(bubble_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_cross1[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_cross1=np.sum(disk_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_cross1[nxin:nxout,mhin:ny//2,:])
-    #turbulent vertical, mean phi
-    bubble_zp_cross2=ma.masked_where(ibeta<40,integrand_zp_cross2)
-    disk_zp_cross2=ma.masked_where(ibeta>=40,integrand_zp_cross2)
-    nummagzp_bub_cross2=np.sum(bubble_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_cross2[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_cross2=np.sum(disk_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_cross2[nxin:nxout,mhin:ny//2,:])
-    #both turbulent
-    bubble_zp_pert=ma.masked_where(ibeta<40,integrand_zp_pert)
-    disk_zp_pert=ma.masked_where(ibeta>=40,integrand_zp_pert)
-    nummagzp_bub_pert=np.sum(bubble_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_pert[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_pert=np.sum(disk_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny//2,:])
-
-    ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
-    integrand_denom=ptot*gdet*_dx1*_dx2*_dx3
-    denom=np.sum(integrand_denom[nxin:nxout,mhin:mhout,:])
-
-    ###normalized stress in/out of bubble
-    alphamagrp_bub_tot=nummagrp_bub_tot/denom
-    alphamagrp_disk_tot=nummagrp_disk_tot/denom
-    #alphamagrp_bub_mean=nummagrp_bub_mean/denom
-    #alphamagrp_disk_mean=nummagrp_disk_mean/denom
-    alphamagrp_bub_cross1=nummagrp_bub_cross1/denom
-    alphamagrp_disk_cross1=nummagrp_disk_cross1/denom
-    alphamagrp_bub_cross2=nummagrp_bub_cross2/denom
-    alphamagrp_disk_cross2=nummagrp_disk_cross2/denom
-    alphamagrp_bub_pert=nummagrp_bub_pert/denom
-    alphamagrp_disk_pert=nummagrp_disk_pert/denom
-
-    alphamagzp_bub_tot=nummagzp_bub_tot/denom
-    alphamagzp_disk_tot=nummagzp_disk_tot/denom
-    #alphamagzp_bub_mean=nummagzp_bub_mean/denom
-    #alphamagzp_disk_mean=nummagzp_disk_mean/denom
-    alphamagzp_bub_cross1=nummagzp_bub_cross1/denom
-    alphamagzp_disk_cross1=nummagzp_disk_cross1/denom
-    alphamagzp_bub_cross2=nummagzp_bub_cross2/denom
-    alphamagzp_disk_cross2=nummagzp_disk_cross2/denom
-    alphamagzp_bub_pert=nummagzp_bub_pert/denom
-    alphamagzp_disk_pert=nummagzp_disk_pert/denom
-
-    ###total stress
-    nummagrp_tot=np.sum(integrand_rp[nxin:nxout,mhin:mhout,:])
-    nummagrp_mean=np.sum(integrand_rp_mean[nxin:nxout,mhin:mhout,:])
-    nummagrp_cross1=np.sum(integrand_rp_cross1[nxin:nxout,mhin:mhout,:])
-    nummagrp_cross2=np.sum(integrand_rp_cross2[nxin:nxout,mhin:mhout,:])
-    nummagrp_pert=np.sum(integrand_rp_pert[nxin:nxout,mhin:mhout,:])
-    alphamagrp_tot=nummagrp_tot/denom
-    alphamagrp_mean=nummagrp_mean/denom
-    alphamagrp_cross1=nummagrp_cross1/denom
-    alphamagrp_cross2=nummagrp_cross2/denom
-    alphamagrp_pert=nummagrp_pert/denom
-
-    nummagzp_tot=np.sum(integrand_zp[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp[nxin:nxout,mhin:ny//2,:])
-    nummagzp_mean=np.sum(integrand_zp_mean[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp_mean[nxin:nxout,mhin:ny//2,:])
-    nummagzp_cross1=np.sum(integrand_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_cross1[nxin:nxout,mhin:ny//2,:])
-    nummagzp_cross2=np.sum(integrand_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_cross2[nxin:nxout,mhin:ny//2,:])
-    nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny//2,:])
-    alphamagzp_tot=nummagzp_tot/denom
-    alphamagzp_mean=nummagzp_mean/denom
-    alphamagzp_cross1=nummagzp_cross1/denom
-    alphamagzp_cross2=nummagzp_cross2/denom
-    alphamagzp_pert=nummagzp_pert/denom
-
-    print(nummagzp_tot, nummagzp_mean,nummagzp_cross1,nummagzp_cross2,nummagzp_pert)
-
-    #return ibeta, integrand_rp_mean, brmean, bphimean, gdet, _dx1, _dx2, _dx3
-    return fnumber, alphamagzp_tot, alphamagzp_mean, alphamagzp_cross1, alphamagzp_cross2, alphamagzp_pert, alphamagzp_bub_tot, alphamagzp_bub_cross1, alphamagzp_bub_cross2, alphamagzp_bub_pert, alphamagzp_disk_tot, alphamagzp_disk_cross1, alphamagzp_disk_cross2, alphamagzp_disk_pert
-
-###################################
-#
-# Other useful functions
-#
-###################################
-def fhorvstime(ihor):
-    """
-    Returns a tuple (ts,fs,mdot): lists of times, horizon fluxes, and Mdot
-    """
-    #changed by Megan 10/20/15 - want values at the bh to be used to calculate phibh, so changed arguments, added dimension. Also changed np.empty to np.zeros because it's less confusing
-    flist = glob.glob( os.path.join("dumps/", "fieldline*.bin") )
-    sort_nicely(flist)
+    # get other things
+    gridcellverts_rhph()
     #
-    ts=np.zeros(len(flist),dtype=np.float32)
-    fs=np.zeros((len(flist),272),dtype=np.float32)
-    md=np.zeros((len(flist),272),dtype=np.float32)
-    for findex, fname in enumerate(flist):
-        print(( "Reading " + fname + " ..." ))
-        rfd("../"+fname)
-        avoidfloorcondition=condmaxbsqorho
-        fs[findex,:]=horfluxcalc(minbsqorho=0)
-        md[findex]=mdotcalc(which=avoidfloorcondition)
-        ts[findex]=t
-    print( "Done fhorvstime!" )
-    return((ts,fs,md))
+    gc.collect() #try to release unneeded memory
+    print( "Done grid3d!" ) ; sys.stdout.flush()
 
-###################################
-#
-# Tutorial for calculating and plotting quantities from fieldline files
-# Good guide to how to read in fieldline files to write your own functions
-#
-###################################
-def tutorial1alt():
-    global use2dglobal
-    use2dglobal=True
-    # first load grid file
-    grid3d("gdump.bin",use2d=True)
-    # now try loading a single fieldline file
-    rfd("fieldline14926.bin")
-    # now plot something you read-in
-    plt.clf()
-    plt.figure(1)
-    lrho=np.log10(rho)
-    aphi = fieldcalc() # keep sign information
+def grid3d_load_rhph(dumpname=None,use2d=False,doface=False,loadsimple=False): #read grid dump file: header and body
+    # similar to grid3d_rhph, THIS IS A COPY of grid3d_load() but ONLY HELPS IN CALCULATING r, theta, and phi
+    #The internal cell indices along the three axes: (ti, tj, tk)
+    #The internal uniform coordinates, (x1, x2, x3), are mapped into the physical
+    #non-uniform coordinates, (r, h, ph), which correspond to radius (r), polar angle (theta), and toroidal angle (phi).
+    #There are more variables, e.g., dxdxp, which is the Jacobian of (x1,x2,x3)->(r,h,ph) transformation, that I can
+    #go over, if needed.
+    global Rin,Rout
+    global nzgdump, lnz, dxdxp
+    global r,h,ph
+    # global ck,conn
+    print(( "Reading grid from " + "dumps/" + dumpname + " ..." )) ; sys.stdout.flush()
+    gin = open( "dumps/" + dumpname, "rb" )
     #
-    ###############################
-    if 1==1:
-        (rhoclean,ugclean,uublob,maxbsqorhonear,maxbsqorhofar,condmaxbsqorho,condmaxbsqorhorhs,rinterp)=getrhouclean(rho,ug,uu)
-        cvel()
-        #
-        diskcondition=condmaxbsqorho
-        # only around equator, not far away from equator
-        diskcondition=diskcondition*(bsq/rho<1.0)*(np.fabs(h-np.pi*0.5)<0.1)
-        diskeqcondition=diskcondition
-        pg = (gam-1)*ugclean
-        prad = (4.0/3.0-1)*urad
-        #
-        WW = rhoclean + ug + pg + urad + prad
-        EF = bsq + WW
-        val21 = np.fabs(bu[1]*bd[1])/EF
-        val22 = np.fabs(bu[2]*bd[2])/EF
-        val23 = np.fabs(bu[3]*bd[3])/EF
-        #
-        #
-        mydr=dxdxp[1,1]*_dx1
-        mydH=r*dxdxp[2,2]*_dx2
-        mydP=r*np.sin(h)*dxdxp[3,3]*_dx3
-        omegarot=uu[3]/uu[0]*dxdxp[3,3]
-        #
-        idx2mri = np.sqrt(val22)*2*np.pi/omegarot/mydH
-    #
-    ##############################
-    #nxout=100
-    nxin=int(iofr(5))
-    nxout=int(iofr(30))
-    myx=r[nxin:nxout,:,0]*np.sin(h[nxin:nxout,:,0])*np.cos(ph[nxin:nxout,:,0])
-    myy=r[nxin:nxout,:,0]*np.sin(h[nxin:nxout,:,0])*np.sin(ph[nxin:nxout,:,0])
-    myz=r[nxin:nxout,:,0]*np.cos(h[nxin:nxout,:,0])
-    #
-    ###internal coordinates
-    #myx=r[nxin:nxout,:,0]
-    #myy=ph[nxin:nxout,:,0]
-    #myz=h[nxin:nxout,:,0]
-    #############################
-    if 1==1:
-        myfun=lrho
-    if 1==0:
-        myfun=np.log10(1E-5+1.0/beta)
-    if 1==0:
-        numMag=jabs(-bu[1]*np.sqrt(gv3[1,1])*bd[3]*np.sqrt(gn3[3,3]))
-        denMR=(bsq*0.5+(gam-1.0)*ug)
-        amag=numMag/denMR
-        myfun=amag
-        cap=0.15
-        floor=-0.15
-        myfun[myfun<=floor]=floor
-        myfun[myfun>=cap]=cap
+    #First line of grid dump file is a text line that contains general grid information:
+    header = gin.readline().split()
 
-    if 1==0:
-        myfun=bu[2]*np.sqrt(gv3[2,2]) #quasi-orthonormal vertical magnetic field
-        cap=0.15#0.5*myfun.max()
-        floor=-0.15#0.5*myfun.min()
-        myfun[myfun<=floor]=floor
-        myfun[myfun>=cap]=cap
+    #Spherical polar radius of the innermost radial cell
+    Rin=myfloatalt(float(header[14]))
+    #Spherical polar radius of the outermost radial cell
+    Rout=myfloatalt(float(header[15]))
+    #read grid dump per-cell data
     #
+    lnz = nz
     #
-    myfun2=aphi
+    print( "Done reading grid header" ) ; sys.stdout.flush()
     #
+    ncols = 126
+    print(( "Start reading grid as binary with lnz=%d" % (lnz) )) ; sys.stdout.flush()
+    body = np.fromfile(gin,dtype=np.float64,count=ncols*nx*ny*lnz)
+    gd = body.view().reshape((-1,nx,ny,lnz),order='F')
+    gin.close()
+    print(( "Done reading grid as binary with lnz=%d" % (lnz) )) ; sys.stdout.flush()
+    gd=myfloat(gd)
+    gc.collect()
     #
-    #######################################
-    ax = plt.gca()
-    ax.pcolor(myx,myz,myfun[nxin:nxout,:,42])  #try pcolormesh - faster
-    #plc(myfun[nxin:nxout,:,42],xcoord=myx,ycoord=myz,ax=ax,cb=True,nc=50) #nc = number of contour
-    #print("cap="+str(cap))
-    #print("floor="+str(floor))
-    #print("floor="+str(floor))
-    #plco(lrho,cb=True,nc=50)
+    print( "Done reading grid" ) ; sys.stdout.flush()
     #
-    #plc(myfun2[nxin:nxout,:,0],xcoord=myx,ycoord=myz,ax=ax,colors='k',nc=50)
-    plt.savefig('f13682_lrho_jofph42.png')
-    #
-    #return lrho
+    # always load ti,tj,tk,x1,x2,x3,r,h,ph
+    # SUPERNOTEMARK: for use2d, note that tk depends upon \phi unlike all other things for a Kerr metric in standard coordinates
+    r,h,ph = gd[6:9,:,:,:].view()
+
+    dxdxp = gd[110:126].view().reshape((4,4,nx,ny,lnz), order='F').transpose(1,0,2,3,4)
+
+def gridcellverts_rhph():
+    # like the two functions above, it is a copy of gridcellverts() without tif,tjf,and tkf
+    ##################################
+    #CELL VERTICES:
+    global rf,hf,phf
+    #RADIAL:
+    #add an extra dimension to rf container since one more faces than centers
+    rf = np.zeros((r.shape[0]+1,r.shape[1]+1,r.shape[2]+1))
+    #operate on log(r): average becomes geometric mean, etc
+    rf[1:nx,0:ny,0:lnz] = (r[1:nx]*r[0:nx-1])**0.5 #- 0.125*(dxdxp[1,1,1:nx]/r[1:nx]-dxdxp[1,1,0:nx-1]/r[0:nx-1])*_dx1
+    #extend in theta
+    rf[1:nx,ny,0:lnz] = rf[1:nx,ny-1,0:lnz]
+    #extend in phi
+    rf[1:nx,:,lnz]   = rf[1:nx,:,lnz-1]
+    #extend in r
+    rf[0] = 0*rf[0] + Rin
+    rf[nx] = 0*rf[nx] + Rout
+    #ANGULAR:
+    hf = np.zeros((h.shape[0]+1,h.shape[1]+1,h.shape[2]+1))
+    hf[0:nx,1:ny,0:lnz] = 0.5*(h[:,1:ny]+h[:,0:ny-1]) #- 0.125*(dxdxp[2,2,:,1:ny]-dxdxp[2,2,:,0:ny-1])*_dx2
+    hf[1:nx-1,1:ny,0:lnz] = 0.5*(hf[0:nx-2,1:ny,0:lnz]+hf[1:nx-1,1:ny,0:lnz])
+    #populate ghost cells in r
+    hf[nx,1:ny,0:lnz] = hf[nx-1,1:ny,0:lnz]
+    #populate ghost cells in phi
+    hf[:,1:ny,lnz] = hf[:,1:ny,lnz-1]
+    #populate ghost cells in theta (note: no need for this since already initialized everything to zero)
+    hf[:,0] = 0*hf[:,0] + 0
+    hf[:,ny] = 0*hf[:,ny] + np.pi
+    #TOROIDAL:
+    phf = np.zeros((ph.shape[0]+1,ph.shape[1]+1,ph.shape[2]+1))
+    phf[0:nx,0:ny,0:lnz] = ph[0:nx,0:ny,0:lnz] - dxdxp[3,3,0,0,0]*0.5*_dx3
+    #extend in phi
+    phf[0:nx,0:ny,lnz]   = ph[0:nx,0:ny,lnz-1] + dxdxp[3,3,0,0,0]*0.5*_dx3
+    #extend in r
+    phf[nx,0:ny,:]   =   phf[nx-1,0:ny,:]
+    #extend in theta
+    phf[:,ny,:]   =   phf[:,ny-1,:]
+
+'''
+ -------------------------------------------------------------------------------
+YT Project-related functions that Max and Connor made:
+ -------------------------------------------------------------------------------
+'''
+def construct_cartesian():
+    # takes the raw data from rf, hf, and phf to make an array in cartesian coords
+    # first we call the functions to get rh, hf, and phf
+    grid3d("gdump.bin",use2d = False)
+    gridcellverts()
+
+    x_cart = np.zeros_like(rf)
+    y_cart = np.zeros_like(hf)
+    z_cart = np.zeros_like(phf)
+
+    x_cart=rf* np.sin(hf)*np.cos(phf)
+    y_cart=rf* np.sin(hf)*np.sin(phf)
+    z_cart=rf*np.cos(hf)
+
+    return x_cart, y_cart, z_cart
+
+def test_random_points():
+    # compared inputs and outputs to this calculator: https://keisan.casio.com/exec/system/1359534351
+    # CAVEAT: this site treats theta as the angle in the xy-plane and phi as the azimuthal
+
+    # This function is broken but not that useful. I think my indexing is wrong.
+    # TO DO (Max): FIGURE OUT HOW IT BROKE
+    grid3d("gdump.bin",use2d = False)
+    gridcellverts()
+    x_cart, y_cart, z_cart = construct_cartesian()
+    digit = rnd.randint(0, 96)
+    print("Digit chosen: " + str(digit))
+    print("in spherical:")
+    print(rf[0][digit], hf[0][digit], phf[0][digit])
+    print("In cartesian:")
+    print(x_cart[0][digit], y_cart[0][digit], z_cart[0][digit])
+
+# initializing this in a global scope, right here, ensures that rfd() returns no errors
 use2dglobal = False
+
+def load_array_as_cartesian(x_array, y_array, z_array):
+    # Takes x, y, z and (attempts) to load it into a yt framework
+    # This is also broken cause my indexing is (probably) wrong.
+    # But I haven't fixed it cause it is not that useful
+    import yt
+
+    #return coords, conn
+    coords, conn = yt.hexahedral_connectivity(x_array[0][0], y_array[0][0], z_array[0][0]) # This is what I likely messed up
+    data = {"density" : rho} # make a dict of the densities (todo: add b-field components once this function works)
+    ds = yt.load_hexahedral_mesh(data, conn, coords,
+        bbox = np.array([[-10000.0, 10000.0], [-10000.0, 10000.0], [-10000.0, 10000.0]]),
+        geometry = 'cartesian')
+    return ds
+
 def make_simplified_array(fieldname):
-    # should create the r h and ph array as an array of vertices
-    grid3d('gdump.bin', use2d=False) # loads the data
+    # creates the r h and ph array as an array of vertices
+    # then we load it into yt
+    grid3d_rhph('gdump.bin', use2d=False) # loads the data
     rfd(fieldname) # I call this to initialize rho
-    gridcellverts() # converts to corners
+    gridcellverts_rhph() # converts to corners
 
     # splits the 3d arrays into their unique columns
-    unique_r = rf[:,0,0]
-    unique_h = hf[0,:,0]
-    unique_ph = phf[0,0,:]
+    unique_r = rf[:,0,0].view().reshape(-1)
+    unique_h = hf[0,:,0].view().reshape(-1)
+    unique_ph = phf[0,0,:].view().reshape(-1)
 
     # the other thing: truncate r at r = 50 if it's too big
     xf=int(iofr(50)) # the index at which we should truncate if necessary
     return unique_r, unique_h, unique_ph
 
-def load_simplified_array(unique_r, unique_h, unique_ph, Brnorm, Bhnorm, Bpnorm):
-    # takes the outputs of both make_simp_array and the new output of get_rt_seedpoints
+def load_simplified_array(unique_r, unique_h, unique_ph):
+    # takes the global rh, hf, phf variables and uses that to load to yt
     import yt
-
+    yt.visualization.plot_modifications.ContourCallback._supported_geometries += ("spherical",)
     #return coords, conn
     coords, conn = yt.hexahedral_connectivity(unique_r, unique_h, unique_ph)
-    data = {"density" : rho, "br": Brnorm, "bh": Bhnorm, "bp": Bpnorm} # make a dict of the densities and b-field components
-    ds = yt.load_hexahedral_mesh(data, conn, coords, 
-        bbox = np.array([[0.0, 10000.0], [0.0, np.pi], [0.0, 2*np.pi]]), 
+    data = {"density" : rho} # make a dict of the densities
+    ds = yt.load_hexahedral_mesh(data, conn, coords,
+        bbox = np.array([[0.0, 10000.0], [0.0, np.pi], [0.0, 2*np.pi]]),
         geometry = 'spherical')
+    #
+    slc = yt.SlicePlot(ds, 'theta', 'density')
+    slc.set_cmap(field="density", cmap='jet')
+    slc.hide_axes() # todo: take out this line and give it proper axis labels
+    slc.save()
     return ds
-# ATTEMPT TO LOAD THE FIELDLINES:
+
+# ATTEMPT TO LOAD THE FIELDLINES (using YT):
 def load_fieldlines(ds):
+    # takes the dataset loaded from yt, as in ds = yt.load_hexahedral_mesh(args)
     c = ds.domain_center # center of the sphere
     N = 100 # number of field lines
     scale = ds.domain_width[0]# scale of lines relative to boxsize
     pos_dx = np.random.random((N, 3))*scale-scale/2 # position relative to center (randomly deifined)
     pos = c+pos_dx # absolute location of fieldline pos
     from yt.visualization.api import Streamlines
-
 
     # create streamline of 3d vector velocity and integrate through boundary defined above
     streamlines = Streamlines(ds, pos, 'br', 'bh', 'bp', get_magnitude = True)
@@ -4806,3 +3996,202 @@ def load_fieldlines(ds):
 
     # Save the plot to disk.
     plt.savefig('streamlines.png')
+'''
+ -------------------------------------------------------------------------------
+PyVista/VTK functions that Max and Connor made:
+ -------------------------------------------------------------------------------
+'''
+
+def render_isosurf_as_points(fnumber, rho_min = None):
+    # this function was a prototupe of render_iso_full_density
+    # the args are the fieldlime name and the minimum density you want displayed
+    # now render_iso_full_density is much better, I would use that instead
+    # i'm just afraid to delete this.
+
+    if fnumber == 0:
+        simplified_array = make_simplified_array('fieldline0000.bin')
+    else:
+        simplified_array = make_simplified_array('fieldline'+ str(fnumber) + '.bin')
+
+    if rho_min == None:
+        rho_min = min(lrho)
+
+    xraw = r*np.sin(h)*np.cos(ph)
+    yraw = r*np.sin(h)*np.sin(ph)
+    zraw = r*np.cos(h)
+
+    # Connor came up with a way of limiting the number of points we load in.
+    # I modified this slightly to depend on radius instead of number of points
+
+    desired_max_rad = 40
+    rad_index = int(iofr(40))
+
+    # make sure these indices are correct
+    x_short=xraw[0:rad_index,:,:].view().reshape(-1)
+    y_short=yraw[0:rad_index,:,:].view().reshape(-1)
+    z_short=zraw[0:rad_index,:,:].view().reshape(-1)
+    rho_short=lrho[0:rad_index,:,:].view().reshape(-1)
+
+    iso_rho = []
+    iso_x = []
+    iso_y = []
+    iso_z = []
+
+    for i in range(len(rho_short)):
+        # there's probably a faster way of doing this
+        # print(rho_short[i])
+        if float(rho_short[i]) >= float(rho_min):
+            iso_rho.append(rho_short[i])
+            iso_x.append(x_short[i])
+            iso_y.append(y_short[i])
+            iso_z.append(z_short[i])
+
+    # then create the 3d coordinate array
+    coords = np.stack((iso_x, iso_y, iso_z), axis = -1)
+    return coords, np.array(iso_rho)
+
+def render_iso_full_density(fnumber):
+    # a copy of render_isosurf_as_points but without filtering low densities
+    # now includes an interactive slider!
+    if fnumber == 0:
+            simplified_array = make_simplified_array('fieldline0000.bin')
+    else:
+        simplified_array = make_simplified_array('fieldline'+ str(fnumber) + '.bin')
+
+    xraw = r*np.sin(h)*np.cos(ph)
+    yraw = r*np.sin(h)*np.sin(ph)
+    zraw = r*np.cos(h)
+
+    # Connor came up with a way of limiting the number of points we load in.
+    # I modified this slightly to depend on radius instead of number of points
+
+    desired_max_rad = 40
+    rad_index = int(iofr(40))
+
+    # make sure these indices are correct
+    x_short=xraw[0:rad_index,:,:].view().reshape(-1)
+    y_short=yraw[0:rad_index,:,:].view().reshape(-1)
+    z_short=zraw[0:rad_index,:,:].view().reshape(-1)
+    rho_short=lrho[0:rad_index,:,:].view().reshape(-1)
+
+    coords = np.stack((x_short, y_short, z_short), axis = -1)
+    data = np.array(rho_short)
+
+    return coords, data
+
+def load_point_plot(coords, data):
+    # Loads and displays the data assembled in the preceeding function
+    # This function is mainly for testing purposes.
+    # The colormap works better if you render and load in the same function.
+    # That way, the low and high points of the colormap are based on the unfiltered rho-data.
+    # However, this function takes only the filtered data as input. -Max 1/22/21
+    import pyvista as pv
+    import vtk
+
+    # fixing the colormap:
+    c_lo, c_hi = min(data), max(data)
+
+    if 1==0:
+        # I'm trying to get this to look like the example here: https://fbpic.github.io/advanced/3d_visualization.html
+        grid = pv.UniformGrid()
+        # I have no idea why, but nothing will run until grid.dimensions is set.
+        # I've gathered that it must a 3-element array whose elements multiply to data.size.
+        grid.dimensions = (192, 96, 208) # this is from rho.shape
+        grid.point_arrays['density'] = data.flatten(order = 'F') # should set the density
+
+        plotter = pv.Plotter()
+        grid.plot(volume = True, clim=(c_lo, c_hi),
+                      cmap='jet', text = "Cutoff lrho: " + str(c_lo))
+    if 1==1:
+        # loads the data as points, as we've been doing
+        mesh = pv.PolyData(coords)
+        mesh['lrho'] = data
+        pv.set_plot_theme('night')
+        plotter = pv.Plotter()
+        plotter.add_text(text = "Cutoff lrho: " + str(c_lo))
+        plotter.add_mesh_threshold(mesh, scalars = 'lrho', point_size = 1, clim=(c_lo, c_hi),
+                      cmap='jet')
+        plotter.show()
+
+def render_and_load_iso_points(fnumber):
+    # this renders and loads the iso"surface" as points
+    # also displays the fnumber and includes the interactive lrho slider.
+
+    # initializes necessary global vars
+    if fnumber == 0:
+            simplified_array = make_simplified_array('fieldline0000.bin')
+            fnumber = '0000'
+    else:
+        simplified_array = make_simplified_array('fieldline'+ str(fnumber) + '.bin')
+
+    xraw = r*np.sin(h)*np.cos(ph)
+    yraw = r*np.sin(h)*np.sin(ph)
+    zraw = r*np.cos(h)
+
+    desired_max_rad = 40
+    rad_index = int(iofr(40))
+
+    x_short=xraw[0:rad_index,:,:].view().reshape(-1)
+    y_short=yraw[0:rad_index,:,:].view().reshape(-1)
+    z_short=zraw[0:rad_index,:,:].view().reshape(-1)
+    rho_short=lrho[0:rad_index,:,:].view().reshape(-1)
+
+    c_lo, c_hi = min(rho_short), max(rho_short) # colormap min/max
+
+    # then create the 3d coordinate array
+    coords = np.stack((x_short, y_short, z_short), axis = -1)
+    data = np.array(rho_short)
+
+    import pyvista as pv
+    import vtk
+
+    if 1==0:
+        # I'm trying to get this to look like the example here: https://fbpic.github.io/advanced/3d_visualization.html
+        # CAUTION: for this to work, change the r, h, and ph in this function rf, hf, and phf (and also get rid of 1==0, ya dingus)
+        grid = pv.UniformGrid()
+        grid.dimensions = lrho.shape
+        grid.point_arrays['density'] = lrho.ravel(order = 'F') # should set the density
+
+        pv.set_plot_theme('night')
+        plotter = pv.Plotter()
+        plotter.add_text('fnumber: '+ str(fnumber))
+        plotter.add_volume(grid, clim=(c_lo, c_hi),
+                      cmap='jet')
+        # plotter.add_mesh(grid)
+        plotter.show()
+    if 1==1:
+        # loads the data as points, as we've been doing
+        mesh = pv.PolyData(coords)
+        mesh['lrho'] = data
+        pv.set_plot_theme('night')
+        plotter = pv.Plotter()
+        plotter.add_text('fnumber: '+ str(fnumber))
+        plotter.add_mesh_threshold(mesh, scalars = 'lrho', point_size = 1, clim=(c_lo, c_hi),cmap='jet')
+        plotter.show()
+
+def reinterp_3d_test():
+    # not related to PyVista, Vtk, or YT. Just testing the reinterpxyz() function Max tried to make
+    # WIP: see if this runs without errors
+    grid3d_rhph('gdump.bin', use2d=False) # loads the data
+    rfd('fieldline14926.bin') # I call this to initialize rho
+    extent = (-25., 25., -25., 25., -25., 25.)
+    extent2 = (-25., 25., -25., 25.)
+
+    irho1 = reinterpxyz(rho, 40., 100, domask = 1, interporder = 'linear')
+    irho2 = reinterpxy(rho, extent2[1], 100, domask = 1, interporder = 'linear')
+
+    return irho1, irho2
+
+def make_sphere_grid(coords, fieldname):
+    # No luck loading it in as spherical data yet. I don't think pyvista even supports spheroids.
+    # This is the skeleton of an attempt to do so that I am afraid to delete. -Max 1/22/21
+    import pyvista as pv
+    simplified_array = make_simplified_array(fieldname)
+    grid_scalar = pv.StructuredGrid(coords)
+
+    # grid_scalar.cell_arrays["density"] = rho.flatten()
+
+    p = pv.Plotter()
+    p.add_mesh(pv.Sphere())
+    p.add_mesh(grid_scalar)
+    p.show()
