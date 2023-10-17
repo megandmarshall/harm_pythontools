@@ -179,9 +179,15 @@ from matplotlib import rc
 from matplotlib import mlab
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import sys
+import os
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.append(root_dir)
 
-from streamlines import streamplot #streamlines is from harm_pythontools, not actually a python package
-from streamlines import fstreamplot
+print(root_dir)
+
+from harm_pythontools.streamlines import streamplot #streamlines is from harm_pythontools, not actually a python package
+from harm_pythontools.streamlines import fstreamplot
 
 import gc
 import numpy as np
@@ -208,7 +214,7 @@ from matplotlib.patches import Ellipse
 import os,glob
 import pylab
 import sys
-import streamlines #again, from harm_pythontools
+import harm_pythontools.streamlines #again, from harm_pythontools
 import re
 from datetime import datetime
 
@@ -1203,8 +1209,10 @@ def gridcellverts():
     tjf=np.arange(0,(nx+1)*(ny+1)*(lnz+1)).reshape((nx+1,ny+1,lnz+1),order='F')
     tkf=np.arange(0,(nx+1)*(ny+1)*(lnz+1)).reshape((nx+1,ny+1,lnz+1),order='F')
     tif %= (nx+1)
+    tjf = tjf.astype(np.float64)
     tjf /= (nx+1)
     tjf %= (ny+1)
+    tkf = tkf.astype(np.float64)
     tkf /= (ny+1)*(lnz+1)
 
 ###################################
@@ -1220,6 +1228,8 @@ def rfd(fieldlinefilename,**kwargs):
     #Cell-centered magnetic field components: B1, B2, B3, 
     #Face-centered magnetic field components multiplied by metric determinant: gdetB1, gdetB2, gdetB3
     global rho,ug,uu,B,gdetB,Erf,urad,uradu
+    global numcolumns
+    global nzgdump
     #
     #read image
     #
@@ -1341,7 +1351,7 @@ def rfd(fieldlinefilename,**kwargs):
     #
     #
     #
-    global numcolumns
+    
     print("numcolumnshere: %d" % (numcolumns)) ; sys.stdout.flush()
     #
     gotgdetB=0
@@ -1393,7 +1403,7 @@ def rfd(fieldlinefilename,**kwargs):
     #
     #############################################################################################
     # see if THETAROT non-zero so need to rotate and transform data
-    global nzgdump
+
     #
     #
     #DEBUGTHETAROT=1
@@ -2230,9 +2240,9 @@ def getrhouclean(rho,ug,uu):
     #
     print("t=%g" % (t))
     print("r")
-    print(r[:,ny/2,0])
+    print(r[:,ny//2,0])
     print("condmaxbsqorhorhs along r")
-    print(condmaxbsqorhorhs[:,ny/2,0])
+    print(condmaxbsqorhorhs[:,ny//2,0])
     print("condmaxbsqorho along eq")
     print(condmaxbsqorho[0,:,0])
     #
@@ -2518,9 +2528,9 @@ def fieldcalcface(gdetB1=None):
     #average in phi and add up
     daphi = (gdetB1).sum(-1)[:,:,None]/nz*_dx2
     aphi = np.zeros_like(daphi)
-    aphi[:,1:ny/2+1]=(daphi.cumsum(axis=1))[:,0:ny/2]
+    aphi[:,1:ny//2+1]=(daphi.cumsum(axis=1))[:,0:ny//2]
     #sum up from the other pole
-    aphi[:,ny/2+1:ny]=(-daphi[:,::-1].cumsum(axis=1))[:,::-1][:,ny/2+1:ny]
+    aphi[:,ny//2+1:ny]=(-daphi[:,::-1].cumsum(axis=1))[:,::-1][:,ny//2+1:ny]
     return(aphi)
 
 # compute integrated optical depth
@@ -2565,7 +2575,7 @@ def compute_taurad(domergeangles=True,radiussettau1zero=80):
         #
         ############# tauradeff1
         tauradeff1[r[:,0,0]>radiussettau1zero,:,:]=0 # to get rid of parts of flow that aren't in steady-state and wouldn't have contributed
-        np.set_printoptions(threshold=sys.maxint)
+        np.set_printoptions(threshold=sys.maxsize)
         #print("tauradeff1") ; sys.stdout.flush()
         #print(tauradeff1[:,0,0]) ; sys.stdout.flush()
         #print("r") ; sys.stdout.flush()
@@ -2596,9 +2606,9 @@ def compute_taurad(domergeangles=True,radiussettau1zero=80):
         taurad2flipintegrated=taurad2flipintegrated[:,::-1,:]
         if domergeangles==True:
             ########################### merge taurad2's
-            for jj in np.arange(0,ny/2):
+            for jj in np.arange(0,ny//2):
                 taurad2flipintegrated[:,jj,:]=taurad2integrated[:,jj,:]
-            for jj in np.arange(ny/2,ny):
+            for jj in np.arange(ny//2,ny):
                 taurad2integrated[:,jj,:]=taurad2flipintegrated[:,jj,:]
         #
         ########################### tauradeff2 (from theta=0 pole)
@@ -2615,9 +2625,9 @@ def compute_taurad(domergeangles=True,radiussettau1zero=80):
         tauradeff2flipintegrated=tauradeff2flipintegrated[:,::-1,:]
         ########################### merge tauradeff2's
         if domergeangles==True:
-            for jj in np.arange(0,ny/2):
+            for jj in np.arange(0,ny//2):
                 tauradeff2flipintegrated[:,jj,:]=tauradeff2integrated[:,jj,:]
-            for jj in np.arange(ny/2,ny):
+            for jj in np.arange(ny//2,ny):
                 tauradeff2integrated[:,jj,:]=tauradeff2flipintegrated[:,jj,:]
         #
         ########################### taurad3
@@ -2987,7 +2997,7 @@ def get2davgone(whichgroup=-1,itemspergroup=20):
     #
     #
     #print "Total number of quantities: %d" % (i)
-    print "Doing %d-th group of %d items" % (whichgroup, itemspergroup) ; sys.stdout.flush()
+    print("Doing %d-th group of %d items" % (whichgroup, itemspergroup))
     #end avg defs
     itert=0
     for fldindex, fldname in enumerate(flist):
@@ -3820,7 +3830,7 @@ def get_RT_seedpoints(fnumber, ncell):
     myh3d=mk2d3d(h)
     myph3d=mk2d3d(ph)
     for k in range(0,nz):
-	myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
+        myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
     #compute cartesian coordinates for each grid point of the array
     myx=myr3d*np.sin(myh3d)*np.cos(myph3d)
     myy=myr3d*np.sin(myh3d)*np.sin(myph3d)
@@ -3884,7 +3894,7 @@ def get_RT_seedpoints(fnumber, ncell):
     ymsk = imyy[msk1.mask==True]
     zmsk = imyz[msk1.mask==True]
     Bmsk = Bzfake1[msk1.mask==True]
-    
+
     #create an unnormalized probability function for B/sqrt(Mdot) to better choose relevant seedpoints; Bprob is 1D array from get_coordsw() while Bp_slice is 2D for python frames
     Bp_slice=np.copy(Bzfake1)
     bmin=0.1 #value of Bz that I want to set to 0 in probability distribution
@@ -3892,111 +3902,111 @@ def get_RT_seedpoints(fnumber, ncell):
     sl=1/(bmax-bmin)
     yint=-bmin*sl
     Bp_slice=sl*Bp_slice+yint #linear probability distribution between Bp=10 and Bp=100
-    print sl, yint #10/9, 1/9 for previous limits
+    print(sl, yint) #10/9, 1/9 for previous limits
     Bp_slice[Bp_slice>1.0]=1.0
     Bp_slice[Bp_slice<0.0]=0.0
     Bprob=Bp_slice[msk1.mask==True]
     ptot=np.sum(Bprob)
-    print ptot
+    print(ptot)
     grid=np.linspace(-rng, rng, ncell)    
     prbmax=5985.0947770276025 #ptot for 7993
     nsp=int(max(round(30*min(ptot/prbmax,1),0),15)) #m=30 is the maximum number of points
-    print 'the number of seedpoints for this time is %d' % nsp
+    print('the number of seedpoints for this time is %d' % nsp)
 
     previousseed=checkifseedpointexists(fnumber)
 
     #Randomly select seedpoints by first finding coordinate points (x,y,z) then converting to grid spacing
     if previousseed==1:
-	oldfile=np.load("snapshot/coords"+str(fnumber-1)+"_wv_hc.npz")
+        oldfile=np.load("snapshot/coords"+str(fnumber-1)+"_wv_hc.npz")
         oldsamp=oldfile['cs']
         oldhc=oldfile['hc']
         oldfile.close()
-	lnc=int(len(oldsamp[:,0]))
-	prob_array=np.zeros(lnc)
-	newsamp=np.zeros((lnc,3))
-	newsamp[:,2]=oldsamp[:,2]
-	newhc=np.zeros(oldhc.shape)
-	delta_t=4.0
-	ax=(ivx1-ivx0)/delta_t
-	ay=(ivy1-ivy0)/delta_t
-	for n in range(0,lnc):
-            print n
+        lnc=int(len(oldsamp[:,0]))
+        prob_array=np.zeros(lnc)
+        newsamp=np.zeros((lnc,3))
+        newsamp[:,2]=oldsamp[:,2]
+        newhc=np.zeros(oldhc.shape)
+        delta_t=4.0
+        ax=(ivx1-ivx0)/delta_t
+        ay=(ivy1-ivy0)/delta_t
+        for n in range(0,lnc):
+            print(n)
             xold=oldsamp[n,0]
-	    yold=oldsamp[n,1]
-	    rold=np.sqrt(xold**2+yold**2)
+            yold=oldsamp[n,1]
+            rold=np.sqrt(xold**2+yold**2)
             if rold>rhor:
                 omega=a/((2*rhor**2)*rold**3)
             else:
                 omega=a/(2*rhor**2)
-	    obperold=2*np.pi/omega
-	    N=100*delta_t/obperold
-	    print N,rold,omega
-	    if N <1:
-		N=1
-	    else:
-		N=int(round(N,0))
-	    exec 'x%s = np.zeros((N+1,2))' %n
-	    exec 'x%s[0,0]=xold' %n
-	    exec 'x%s[0,1]=yold' %n
-	    for i in range(1,N+1):
-		exec 'x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n)
-	    exec 'newsamp[n,0]=x%s[N,0]' %n
-	    exec 'newsamp[n,1]=x%s[N,1]' %n
-	    iofx=getnearpos(grid,newsamp[n,0])
-	    jofy=getnearpos(grid,newsamp[n,1])
-	    prob_array[n]=Bp_slice[jofy,iofx]
-            print "the probablity is %.2f" % prob_array[n]
-	    if prob_array[n]<=0:
-                print "probability is too low, so the point is being replaced"
-		csnew=get_coordsw(xmsk,ymsk,zmsk.data,Bprob,1,fnumber,previousseed)
-		newsamp[n,:]=csnew[0,:]
-		iofx=getnearpos(grid,newsamp[n,0])
-		jofy=getnearpos(grid,newsamp[n,1])
-		prob_array[n]=Bp_slice[jofy,iofx]
-                print "the probability of the new point is %.2f" % prob_array[n]
-	for n in range(0,4):
+            obperold=2*np.pi/omega
+            N=100*delta_t/obperold
+            print(N,rold,omega)
+            if N <1:
+                N=1
+            else:
+                N=int(round(N,0))
+            exec('x%s = np.zeros((N+1,2))' %n)
+            exec('x%s[0,0]=xold' %n)
+            exec('x%s[0,1]=yold' %n)
+            for i in range(1,N+1):
+                exec('x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n))
+            exec('newsamp[n,0]=x%s[N,0]' %n)
+            exec('newsamp[n,1]=x%s[N,1]' %n)
+            iofx=getnearpos(grid,newsamp[n,0])
+            jofy=getnearpos(grid,newsamp[n,1])
+            prob_array[n]=Bp_slice[jofy,iofx]
+            print("the probablity is %.2f" % prob_array[n])
+            if prob_array[n]<=0:
+                print("probability is too low, so the point is being replaced")
+                csnew=get_coordsw(xmsk,ymsk,zmsk.data,Bprob,1,fnumber,previousseed)
+                newsamp[n,:]=csnew[0,:]
+                iofx=getnearpos(grid,newsamp[n,0])
+                jofy=getnearpos(grid,newsamp[n,1])
+                prob_array[n]=Bp_slice[jofy,iofx]
+                print("the probability of the new point is %.2f" % prob_array[n])
+        for n in range(0,4):
             xold=oldhc[n,0]
-	    yold=oldhc[n,1]
-	    rold=np.sqrt(xold**2+yold**2)
+            yold=oldhc[n,1]
+            rold=np.sqrt(xold**2+yold**2)
             omega=a/(2*rhor**2)
-	    obperold=2*np.pi/omega
-	    N=100*delta_t/obperold
-	    print N,rold,omega
-	    if N <1:
-		N=1
-	    else:
-		N=int(round(N,0))
-	    exec 'x%s = np.zeros((N+1,2))' %n
-	    exec 'x%s[0,0]=xold' %n
-	    exec 'x%s[0,1]=yold' %n
-	    for i in range(1,N+1):
-		exec 'x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n)
-	    exec 'newhc[n,0]=x%s[N,0]' %n
-	    exec 'newhc[n,1]=x%s[N,1]' %n
-	    newhc[n,2]=np.sqrt(rhor**2-(newhc[n,0]**2+newhc[n,1]**2))
-	if lnc>nsp:
-            print 'the number of points has decreased by %d' %(lnc-nsp)
+            obperold=2*np.pi/omega
+            N=100*delta_t/obperold
+            print(N,rold,omega)
+            if N <1:
+                N=1
+            else:
+                N=int(round(N,0))
+            exec('x%s = np.zeros((N+1,2))' %n)
+            exec('x%s[0,0]=xold' %n)
+            exec('x%s[0,1]=yold' %n)
+            for i in range(1,N+1):
+                exec('x%s[i,0],x%s[i,1]=propagate_seeds(x%s[i-1,0],x%s[i-1,1],ivx0, ivy0,ax,ay,grid,N,delta_t,ncell)' %(n,n,n,n))
+            exec('newhc[n,0]=x%s[N,0]' %n)
+            exec('newhc[n,1]=x%s[N,1]' %n)
+            newhc[n,2]=np.sqrt(rhor**2-(newhc[n,0]**2+newhc[n,1]**2))
+        if lnc>nsp:
+            print('the number of points has decreased by %d' %(lnc-nsp))
             ta=np.hstack((newsamp,prob_array.reshape((lnc,1))))
             ta=ta[ta[:,3].argsort()[::-1]]
-	    newsamp=ta[0:nsp,0:3]
+            newsamp=ta[0:nsp,0:3]
             prob_array=ta[0:nsp,3]
-	elif lnc<nsp:
-            print 'the number of points has increased by %d' %(nsp-lnc)
-	    spn=nsp-lnc
-	    csplus=get_coordsw(xmsk,ymsk,zmsk.data,Bprob,spn,fnumber,previousseed)
-	    newsamp=np.concatenate((newsamp,csplus),axis=0)
-	else:
-	    newsamp=newsamp
-	coords=open("snapshot/coords"+str(fnumber)+"_wv_hc.npz","w")
-	coords_sampled=newsamp
-	horcirc=newhc
-	np.savez(coords,cs=coords_sampled, prob=prob_array,hc=horcirc)
+        elif lnc<nsp:
+            print('the number of points has increased by %d' %(nsp-lnc))
+            spn=nsp-lnc
+            csplus=get_coordsw(xmsk,ymsk,zmsk.data,Bprob,spn,fnumber,previousseed)
+            newsamp=np.concatenate((newsamp,csplus),axis=0)
+        else:
+            newsamp=newsamp
+        coords=open("snapshot/coords"+str(fnumber)+"_wv_hc.npz","w")
+        coords_sampled=newsamp
+        horcirc=newhc
+        np.savez(coords,cs=coords_sampled, prob=prob_array,hc=horcirc)
         coords.close()
     else:  	
-	coords_sampled = get_coordsw(xmsk, ymsk, zmsk.data, Bprob, nsp, fnumber,previousseed)	
-	newsamp=coords_sampled
-	horcirc=np.zeros((4,3))
-	for i in range(0,4):
+        coords_sampled = get_coordsw(xmsk, ymsk, zmsk.data, Bprob, nsp, fnumber,previousseed)	
+        newsamp=coords_sampled
+        horcirc=np.zeros((4,3))
+        for i in range(0,4):
             horcirc[i,0]=0.7*rhor*np.cos(i*0.5*np.pi)
             horcirc[i,1]=0.7*rhor*np.sin(i*0.5*np.pi)
             horcirc[i,2]=np.sqrt(rhor**2-(0.7*rhor)**2)
@@ -4005,10 +4015,10 @@ def get_RT_seedpoints(fnumber, ncell):
             iofx=getnearpos(grid,newsamp[n,0])
             jofy=getnearpos(grid,newsamp[n,1])
             prob_array[n]=Bp_slice[jofy,iofx]
-    	coords=open("snapshot/coords"+str(fnumber)+"_wv_hc.npz","w")
-    	np.savez(coords,cs=coords_sampled, prob=prob_array, hc=horcirc)
-    	coords.close()
-    
+        coords=open("snapshot/coords"+str(fnumber)+"_wv_hc.npz","w")
+        np.savez(coords,cs=coords_sampled, prob=prob_array, hc=horcirc)
+        coords.close()
+
     #Make plots to use as movie frames
     plt.clf()
     plt.figure(1)
@@ -4059,20 +4069,20 @@ def get_coordsw(x,y,z,flux,m,fnumber,previousseed):
     #trying uniform sampling at initial time then random for filling in new points
     if previousseed==0:
         samp=np.random.uniform(0,1,m)
-        print "uniform sampling used"
+        print("uniform sampling used")
     else:
         samp=np.random.random_sample(m)
-        print "random sampling used"
+        print("random sampling used")
     #choose nsp seedpoints based on the probability array
     for i in range(0,m):
         if samp[i]<=prb[0]:
-            print "the flux for this point is %.2d" % flux[0]
+            print("the flux for this point is %.2d" % flux[0])
             c=np.array([[x[0],y[0],z[0]]])
             coords_sampled=np.concatenate((coords_sampled,c),axis=0)
         else:
-	    for j in range(1,a):
+            for j in range(1,a):
                 if prb[j-1]<=samp[i]<=prb[j]:
-                    print "the flux for this point is %.2d" % flux[j]
+                    print("the flux for this point is %.2d" % flux[j])
                     c=np.array([[x[j],y[j],z[j]]])
                     coords_sampled=np.concatenate((coords_sampled,c),axis=0)
 
@@ -4191,7 +4201,7 @@ def addhorcirc(fnumber, ncell):
     myh3d=mk2d3d(h)
     myph3d=mk2d3d(ph)
     for k in range(0,nz):
-	myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
+	    myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
     #compute cartesian coordinates for each grid point of the array
     myx=myr3d*np.sin(myh3d)*np.cos(myph3d)
     myy=myr3d*np.sin(myh3d)*np.sin(myph3d)
@@ -4446,7 +4456,7 @@ def stressvtime(fnumber):
     nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny/2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny/2,:])
     alphamagzp=nummagzp/denom
     alphamagzp_pert=nummagzp_pert/denom
-    print alphamagrp_bubble, alphamagrp_disk
+    print(alphamagrp_bubble, alphamagrp_disk)
     
     '''myfun=(-br*bphi)*r**2/np.average(ptot[ihor,ny/2,:])
     myfun[myfun>3]=3
@@ -4556,8 +4566,8 @@ def stressdecompvtime(fnumber):
     #total stress
     bubble_zp_tot=ma.masked_where(ibeta<40,integrand_zp)
     disk_zp_tot=ma.masked_where(ibeta>=40,integrand_zp)
-    nummagzp_bub_tot=np.sum(bubble_zp_tot[nxin:nxout,ny/2:mhout,:])-np.sum(bubble_zp_tot[nxin:nxout,mhin:ny/2,:])
-    nummagzp_disk_tot=np.sum(disk_zp_tot[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_tot[nxin:nxout,mhin:ny/2,:])
+    nummagzp_bub_tot=np.sum(bubble_zp_tot[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_tot[nxin:nxout,mhin:ny//2,:])
+    nummagzp_disk_tot=np.sum(disk_zp_tot[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_tot[nxin:nxout,mhin:ny//2,:])
     '''#mean field - masking not working because avg2d averages in phi, so no good way to get 1D ibeta
     bubble_zp_mean=ma.masked_where(ibeta[:,ny/2,:]<40,integrand_zp_mean)
     disk_zp_mean=ma.masked_where(ibeta[:,ny/2,:]>=40,integrand_zp_mean)
@@ -4566,18 +4576,18 @@ def stressdecompvtime(fnumber):
     #mean vertical, turbulent phi
     bubble_zp_cross1=ma.masked_where(ibeta<40,integrand_zp_cross1)
     disk_zp_cross1=ma.masked_where(ibeta>=40,integrand_zp_cross1)
-    nummagzp_bub_cross1=np.sum(bubble_zp_cross1[nxin:nxout,ny/2:mhout,:])-np.sum(bubble_zp_cross1[nxin:nxout,mhin:ny/2,:])
-    nummagzp_disk_cross1=np.sum(disk_zp_cross1[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_cross1[nxin:nxout,mhin:ny/2,:])
+    nummagzp_bub_cross1=np.sum(bubble_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_cross1[nxin:nxout,mhin:ny//2,:])
+    nummagzp_disk_cross1=np.sum(disk_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_cross1[nxin:nxout,mhin:ny//2,:])
     #turbulent vertical, mean phi
     bubble_zp_cross2=ma.masked_where(ibeta<40,integrand_zp_cross2)
     disk_zp_cross2=ma.masked_where(ibeta>=40,integrand_zp_cross2)
-    nummagzp_bub_cross2=np.sum(bubble_zp_cross2[nxin:nxout,ny/2:mhout,:])-np.sum(bubble_zp_cross2[nxin:nxout,mhin:ny/2,:])
-    nummagzp_disk_cross2=np.sum(disk_zp_cross2[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_cross2[nxin:nxout,mhin:ny/2,:])
+    nummagzp_bub_cross2=np.sum(bubble_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_cross2[nxin:nxout,mhin:ny//2,:])
+    nummagzp_disk_cross2=np.sum(disk_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_cross2[nxin:nxout,mhin:ny//2,:])
     #both turbulent
     bubble_zp_pert=ma.masked_where(ibeta<40,integrand_zp_pert)
     disk_zp_pert=ma.masked_where(ibeta>=40,integrand_zp_pert)
-    nummagzp_bub_pert=np.sum(bubble_zp_pert[nxin:nxout,ny/2:mhout,:])-np.sum(bubble_zp_pert[nxin:nxout,mhin:ny/2,:])
-    nummagzp_disk_pert=np.sum(disk_zp_pert[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny/2,:])
+    nummagzp_bub_pert=np.sum(bubble_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_pert[nxin:nxout,mhin:ny//2,:])
+    nummagzp_disk_pert=np.sum(disk_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny//2,:])
 
     ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
     integrand_denom=ptot*gdet*_dx1*_dx2*_dx3
@@ -4618,21 +4628,23 @@ def stressdecompvtime(fnumber):
     alphamagrp_cross2=nummagrp_cross2/denom
     alphamagrp_pert=nummagrp_pert/denom
 
-    nummagzp_tot=np.sum(integrand_zp[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp[nxin:nxout,mhin:ny/2,:])
-    nummagzp_mean=np.sum(integrand_zp_mean[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp_mean[nxin:nxout,mhin:ny/2,:])
-    nummagzp_cross1=np.sum(integrand_zp_cross1[nxin:nxout,ny/2:mhout,:])-np.sum(integrand_zp_cross1[nxin:nxout,mhin:ny/2,:])
-    nummagzp_cross2=np.sum(integrand_zp_cross2[nxin:nxout,ny/2:mhout,:])-np.sum(integrand_zp_cross2[nxin:nxout,mhin:ny/2,:])
-    nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny/2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny/2,:])
+    nummagzp_tot=np.sum(integrand_zp[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp[nxin:nxout,mhin:ny//2,:])
+    nummagzp_mean=np.sum(integrand_zp_mean[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp_mean[nxin:nxout,mhin:ny//2,:])
+    nummagzp_cross1=np.sum(integrand_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_cross1[nxin:nxout,mhin:ny//2,:])
+    nummagzp_cross2=np.sum(integrand_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_cross2[nxin:nxout,mhin:ny//2,:])
+    nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny//2,:])
     alphamagzp_tot=nummagzp_tot/denom
     alphamagzp_mean=nummagzp_mean/denom
     alphamagzp_cross1=nummagzp_cross1/denom
     alphamagzp_cross2=nummagzp_cross2/denom
     alphamagzp_pert=nummagzp_pert/denom
 
-    print nummagzp_tot, nummagzp_mean,nummagzp_cross1,nummagzp_cross2,nummagzp_pert
+    print(nummagzp_tot, nummagzp_mean,nummagzp_cross1,nummagzp_cross2,nummagzp_pert)
+
+    return alphamagrp_tot, alphamagrp_mean, alphamagrp_cross1, alphamagrp_cross2, alphamagrp_pert
 
     #return ibeta, integrand_rp_mean, brmean, bphimean, gdet, _dx1, _dx2, _dx3
-    return fnumber, alphamagzp_tot, alphamagzp_mean, alphamagzp_cross1, alphamagzp_cross2, alphamagzp_pert, alphamagzp_bub_tot, alphamagzp_bub_cross1, alphamagzp_bub_cross2, alphamagzp_bub_pert, alphamagzp_disk_tot, alphamagzp_disk_cross1, alphamagzp_disk_cross2, alphamagzp_disk_pert
+    # return fnumber, alphamagzp_tot, alphamagzp_mean, alphamagzp_cross1, alphamagzp_cross2, alphamagzp_pert, alphamagzp_bub_tot, alphamagzp_bub_cross1, alphamagzp_bub_cross2, alphamagzp_bub_pert, alphamagzp_disk_tot, alphamagzp_disk_cross1, alphamagzp_disk_cross2, alphamagzp_disk_pert
 
 ###################################
 #
@@ -4653,10 +4665,10 @@ def fhorvstime(ihor):
     for findex, fname in enumerate(flist):
         print( "Reading " + fname + " ..." )
         rfd("../"+fname)
-	avoidfloorcondition=condmaxbsqorho
+        avoidfloorcondition=condmaxbsqorho
         fs[findex,:]=horfluxcalc(minbsqorho=0)
         md[findex]=mdotcalc(which=avoidfloorcondition)
-        ts[findex]=t
+        ts[findex]=t    
     print( "Done fhorvstime!" )
     return((ts,fs,md))
 
@@ -4756,3 +4768,107 @@ def tutorial1alt():
     plt.savefig('f13682_lrho_jofph42.png')
     #
     #return lrho
+
+
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+from tqdm import tqdm  # for the progress bar
+from matplotlib.animation import FuncAnimation
+import os
+import sys
+
+
+
+# Function to perform calculations that don't change within the loop
+def pre_calculations():
+    global use2dglobal, nxin, nxout
+    use2dglobal = True
+    grid3d("gdump.bin", use2d=True)
+    nxin = int(iofr(5))
+    nxout = int(iofr(30))
+    return nxin, nxout
+
+# Function to perform calculations that change within the loop
+def update(frame):
+    #Call reinterp here to update x and z maybe(y) axis. Look for zoomvideo, want to update 
+    #Density. 
+    filename = "fieldline" + str(frame) + ".bin"
+    rfd(filename)
+    lrho = np.log10(rho)
+    myx = r[nxin:nxout, :, 0] * np.sin(h[nxin:nxout, :, 0]) * np.cos(ph[nxin:nxout, :, 0])
+    myz = r[nxin:nxout, :, 0] * np.cos(h[nxin:nxout, :, 0])
+    myfun = lrho
+    ax.clear()
+    ax.pcolormesh(myx, myz, myfun[nxin:nxout, :, 42], shading='gouraud')
+
+def supress_output():
+    # Suppress all print statements except for tqdm
+    original_stdout = sys.stdout
+    sys.stdout = open(os.devnull, 'w')
+    return original_stdout
+
+def restore_output(orgstd):
+    sys.stdout.close()
+    sys.stdout = orgstd
+
+
+def create_movie(x, y):
+    
+    # Initialize the plot and axis
+    global fig, ax
+    fig, ax = plt.subplots()
+    # Perform calculations that don't change within the loop
+    nxin, nxout = pre_calculations()
+    # Create the FuncAnimation object
+    ani = FuncAnimation(fig, update, frames=tqdm(range(x, y + 1)), interval=100)
+    # Save the animation
+    ani.save('Results/movies/fullmovie.mp4', writer='ffmpeg')
+    # Restore stdout
+    
+def stressdecompplot(x, y):
+    error_message_list = []
+    data = np.zeros((y + 1 - x, 6))
+    labels = ['alphamagrp_tot', 'alphamagrp_mean', 'alphamagrp_cross1', 'alphamagrp_cross2', 'alphamagrp_pert']
+    for idx, i in tqdm(enumerate(range(x, y + 1))):
+        print(f'This is the loop status: {idx, i}')
+        try:
+            alphamagrp_tot, alphamagrp_mean, alphamagrp_cross1, alphamagrp_cross2, alphamagrp_pert = stressdecompvtime(str(i))
+        except Exception as e:
+            error_message_list.append(e)
+            continue
+        data[idx, 0] = idx
+        data[idx, 1] = alphamagrp_tot
+        data[idx, 2] = alphamagrp_mean
+        data[idx, 3] = alphamagrp_cross1
+        data[idx, 4] = alphamagrp_cross2
+        data[idx, 5] = alphamagrp_pert
+
+    for i, label in enumerate(labels):
+        plt.figure()
+        plt.plot(data[:, 0], data[:, i+1])  # i+1 because data[:, 0] is the index
+        plt.xlabel('Index (idx)')
+        plt.ylabel(label)
+        plt.title(f'{label} vs Index')
+        plt.savefig(f'/Volumes/USB31FD/MADNT/Results/plots/{label}_vs_time.png')
+        plt.close()
+    return error_message_list
+
+# fname, alpha, *_ = stressdecompvtime('12873')
+# checkiffullavgexists()
+
+# rfdheader(fin=)
+# get2davgone(whichgroup=0)
+gc.collect()
+original_stdout = supress_output()
+
+# pre_calculations()
+# create_movie(12873, 13191)
+
+eml = stressdecompplot(12873, 13191)
+for item in eml:
+    print(str(item))
+restore_output(original_stdout)
+gc.collect()
+
