@@ -1,2 +1,3 @@
 scripts/jon_makemovie_programstartc.o
 scripts/makemoviec
+*.pyc
