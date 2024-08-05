@@ -30136,7 +30136,7 @@ def stressdecompvtime(fnumber):
     nummagzp_disk_pert=np.sum(disk_zp_pert[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny/2,:])
 
     ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
-    integrand_denom=ptot*gdet*_dx1*_dx2*_dx3
+    integrand_denom=ptot*gdet*_dx1*_dx2
     denom=np.sum(integrand_denom[nxin:nxout,mhin:mhout,:])
 
     ###normalized stress in/out of bubble

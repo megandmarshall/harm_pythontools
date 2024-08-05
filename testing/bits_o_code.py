@@ -1,5 +1,12 @@
 ###Random bits of code that come in handy
 
+###making avg2d.npy for section of code for students
+### change whichgroup to initial fieldline number/60 rounded down
+### change whichgroupe to final fieldline number/60 rounded up
+### must be done with certain external hard drive that has all the avg2d_***.npy
+cd D:\Ztest\madnt_analysis.tgz\madnt\finegrainavg
+avgmem = get2davg(whichgroup=129,whichgroupe=139,itemspergroup=20,domerge=True)
+
 ###ASTRORAY stuff
 I=np.load('figures/60fdiff/Ivstime_faceon_fdiff60.npy')
 
