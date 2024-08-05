@@ -1,9 +1,18 @@
-###Simplified code with only the functions needed to replicate Marshall, McKinney, and Avara 2018
-###needs a lot of commenting and to updated to work with Python3 (Megan 6/5/20)
+### Simplified code with only the functions needed to replicate Marshall, McKinney, and Avara 2018
+### needs a lot of commenting (Megan 6/5/20)
+### Python3 update done by Max Hanrahan Winter 2020-2021
 
-###Initializing global variables to conform to python3 syntax (Max 12/14/20)
+###Declaring global variables here to avoid py3 bugs (Max 12/14/20)
+global _dx1,_dx2,_dx3,nx,ny,nz
 global numcolumns
 global nzgdump
+global gotrad
+global modelname
+global rhoeddcode
+global KAPPAUSER, KAPPAESUSER
+global rho, rholab
+global ug, B, gdetB, urad, bsq, mu, ud, uu, beta, betatot
+global tauradintegrated,tauradeffintegrated
 
 def setpythonpath():
     # PYTHONPATH from os environment might include arbitrary paths, including those not accessible on supercomputer by a compute node, so set manually
@@ -4759,6 +4768,14 @@ def tutorial1alt():
     plt.savefig('f13682_lrho_jofph42.png')
     #
     #return lrho
+
+
+###################################
+#
+# Functions written by research students
+# More can be found in student_functions.py
+#
+###################################
 use2dglobal = False
 def make_simplified_array(fieldname):
     # should create the r h and ph array as an array of vertices
@@ -4806,3 +4823,298 @@ def load_fieldlines(ds):
 
     # Save the plot to disk.
     plt.savefig('streamlines.png')
+
+def render_isosurf_as_points(max_rad, rho_min):
+    '''Max Hanrahan and Conner Feldman's attempt to create 3D renderings of the simulation'''
+    xraw = r*np.sin(h)*np.cos(ph)
+    yraw = r*np.sin(h)*np.sin(ph)
+    zraw = r*np.cos(h)
+
+    # Connor came up with a way of limiting the number of points we load in.
+    # I modified this slightly to depend on radius instead of number of points
+
+    #desired_max_rad = 4.5
+    rad_index = int(iofr(max_rad))
+    print rad_index
+
+    # make sure these indices are correct
+    x_short=xraw[0:rad_index,:,:].view().reshape(-1)
+    y_short=yraw[0:rad_index,:,:].view().reshape(-1)
+    z_short=zraw[0:rad_index,:,:].view().reshape(-1)
+    rho_short=rho[0:rad_index,:,:].view().reshape(-1)
+
+    iso_rho = []
+    iso_x = []
+    iso_y = []
+    iso_z = []
+
+    for i in range(len(rho_short)):
+        # there's probably a faster way of doing this
+        # print(rho_short[i])
+        if float(rho_short[i]) >= float(rho_min): 
+            iso_rho.append(rho_short[i])
+            iso_x.append(x_short[i])
+            iso_y.append(y_short[i])
+            iso_z.append(z_short[i])
+            print i, len(iso_rho), rho_short[i]
+
+    # then create the 3d coordinate array
+    coords = np.stack((iso_x, iso_y, iso_z), axis = -1)
+    return coords, np.array(iso_rho), rho_short
+
+def testingtesting():
+    '''Function written by Max Hanrahan'''
+    # first load grid file
+    grid3d("gdump.bin",use2d=False)
+    gridcellverts()
+    # now try loading a single fieldline file
+    #rfd("fieldline0000.bin")
+
+    gridverts=open("madntgridverts.npz","wb")
+    np.savez(gridverts, rf=rf, hf=hf, phf=phf)
+    gridverts.close()
+    print( "Done!" )
+
+################################################################################
+# The section below is for using VisIt to create 3d visualizations of the
+# simulation. get_visit loops through get_vts, where we convert info from
+# each file to a format fitting for VisIt.
+# Written by Shu Xin Wu
+################################################################################
+
+#Get the vts files for a range of times
+def get_visit(start, end=0):
+    if end == 0:
+        end = start + 1
+    for x in range(start, end):
+        get_vts(x)
+
+#Get a single vts file given a field line file number.
+def get_vts(fnumber):
+    global use2dglobal
+    use2dglobal=True
+    grid3d("gdump.bin", use2d=use2dglobal)
+
+    #gridcellverts()
+    #return rf, hf, phf
+
+    # now try loading a single fieldline file
+    rfd("fieldline"+str(fnumber).zfill(4)+".bin") #bring back later
+
+    gridverts = np.load("madntgridverts.npz")
+    myr = gridverts["rf"]
+    myh = gridverts["hf"]
+    myph = gridverts["phf"]
+    #make the spherical polar grid fully 3D - coords
+    #myr3d=mk2d3d(rf)
+    #myh3d=mk2d3d(hf)
+    #myph3d=mk2d3d(phf)
+    #for k in range(0,nz):
+    #    myph3d[:,:,k]=(0.5+k)*2*np.pi/nz
+
+    #compute cartesian coordinates for each grid point of the array
+    xvert=myr*np.sin(myh)*np.cos(myph)
+    yvert=myr*np.sin(myh)*np.sin(myph)
+    zvert=myr*np.cos(myh)
+
+    Br = dxdxp[1,1]*B[1]+dxdxp[1,2]*B[2]
+    Bh = dxdxp[2,1]*B[1]+dxdxp[2,2]*B[2]
+    Bp = B[3]*dxdxp[3,3]
+
+    Brnorm=Br
+    Bhnorm=Bh*np.abs(r)
+    Bpnorm=Bp*np.abs(r*np.sin(h))
+
+    Bznorm=Brnorm*np.cos(h)-Bhnorm*np.sin(h)
+    BRnorm=Brnorm*np.sin(h)+Bhnorm*np.cos(h)
+    Bxnorm=BRnorm*np.cos(ph)-Bpnorm*np.sin(ph)
+    Bynorm=BRnorm*np.sin(ph)+Bpnorm*np.cos(ph)
+
+    #fortranarray
+    mybx=np.asfortranarray(Bxnorm)
+    myby=np.asfortranarray(Bynorm)
+    mybz=np.asfortranarray(Bznorm)
+    myrho=np.asfortranarray(rho)
+
+    from evtk.hl import structuredToVTK
+    structuredToVTK("WMAD"+str(fnumber).zfill(4), xvert, yvert, zvert, cellData={"density":myrho,"Mag field":(mybx, myby, mybz)})
+
+###################################
+#
+# Written by Karina Sirabian
+# Compares upsilon, accretion rate, or alpha by graphing two of them against
+# each other and performing a linear regression test (outputs best fit line and
+# r-squared value)
+#
+###################################
+from sklearn.linear_model import LinearRegression
+# ar for accretion rate, blah for ...?
+def get_reg(ups = True, ar = False, blah = False):
+    plt.clf()
+
+    ups = np.load("mdotuph_vs_t.npz")
+    phibh = ups['phibh'] #upsilon, magnetic flux strength
+    phibh_sub = phibh[10680:10838]
+    md = ups['md'] #prop to viscosity, measuring angular momentum transport
+    md_sub = md[10680:10838]
+
+    # Normalize phibh
+    phibh_max = max(phibh_sub)
+    #phibh_min = min(phibh_sub)
+    #phibh_norm = (phibh_sub - phibh_min)/(phibh_max - phibh_min)
+    phibh_norm = phibh_sub / phibh_max
+    phibh_sub = phibh_norm
+
+    # Normalize md
+    md_max = max(md_sub)
+    #md_min = min(md_sub)
+    #md_norm  = (md_sub - md_min)/(md_max - md_min)
+    md_norm = md_sub / md_max
+    md_sub = md_norm
+
+    df = np.load("stressvtime2.npy")
+    alpha = df[:,1]
+    print("alpha: %s" %len(alpha))
+    print("ups: %s" %len(phibh_sub))
+    print("ar: %s" %len(md_sub))
+
+    # let's generalize to x and y
+    # alpha vs. accretion rate
+    if blah:
+        x = md_sub
+        y = phibh_sub
+        plt.xlabel("accretion rate")
+        plt.ylabel(r'$\Upsilon$')
+    # ups vs. accretion rate
+    elif ar:
+        x = md_sub
+        y = alpha
+        plt.xlabel("accretion rate")
+        plt.ylabel(r'$\alpha$')
+    # alpha vs. upsilon
+    else:
+        x = phibh_sub
+        y = alpha
+        plt.xlabel(r'$\Upsilon$')
+        plt.ylabel(r'$\alpha$')
+
+    # scatter plot
+    plt.scatter(x, y, c='r', marker='+')
+
+    # scipy lin reg
+    result = sp.stats.linregress(x,y)
+    textstr = "Line of best fit: y = %f x + %f\nR-squared: %f" %(result.slope, result.intercept, result.rvalue**2)
+    #plt.text(0.05, 1.05, "Line of best fit: y = %f x + %f\nR-squared: %f" %(result.slope, result.intercept, result.rvalue**2))
+    #plt.text(0,0, "Line of best fit: y = %f x + %f\nR-squared: %f" %(result.slope, result.intercept, result.rvalue**2))
+    plt.text(0.2, 0.85, textstr, fontsize=12, transform=plt.gcf().transFigure)
+    plt.plot(x, result.slope*x + result.intercept)
+    plt.ylim([0,1]) #make y axis range standard
+    plt.savefig("alphaUpsRegtest1" + "test.png")
+
+def Rstressdecompvtime(fnumber):
+    ''' Written by Shu Xin Wu based on stressdecompvtime
+    Finding Reynolds stress, using u components instead of b.
+    Zach Jones has a version that matches Jon's definitions'''
+
+    # first load grid file
+    global use2dglobal
+    use2dglobal=True
+    grid3d("gdump.bin", use2d=use2dglobal)
+    # now try loading a single fieldline file
+    rfd("fieldline"+str(fnumber).zfill(4)+".bin")
+    ###############################
+    (rhoclean,ugclean,uublob,maxbsqorhonear,maxbsqorhofar,condmaxbsqorho,condmaxbsqorhorhs,rinterp)=getrhouclean(rho,ug,uu)
+    cvel()
+    rhor=1+(1-a**2)**0.5
+    ihor=int(iofr(rhor))
+    pg=(gam-1.0)*ug
+    #
+    diskcondition=condmaxbsqorho
+    #only around equator, not far away from equator
+    diskcondition=diskcondition*(bsq/rho<1.0)*(np.fabs(h-np.pi*0.5)<0.1)
+    diskeqcondition=diskcondition
+    ##############################
+    ###choose the radial extent of the plot
+    nxin=int(iofr(2.5))
+    nxout=int(iofr(25))
+    ###choose extent in r,theta:
+    hoverr=0.1
+    hmin=np.pi/2 - hoverr
+    hmax=np.pi/2 + hoverr
+    mhin=int(jofh(hmin,nxout))
+    mhout=int(jofh(hmax,nxout))
+    iny = int(ny/2)
+
+    loadavg()
+    ###integrated stress
+    # finding all terms, avg and perturbations
+    ibeta=0.5*bsq/pg #for masking
+    ##magnetic field decomposition into mean field and turbulent terms
+    vr=uu[1]*np.sqrt(gv3[1,1]) # b upper
+    vrmean=avg_uu[1]*np.sqrt(gv3[1,1])
+    vrpert=(uu[1]-avg_uu[1])*np.sqrt(gv3[1,1])
+
+    vphi=ud[3]*np.sqrt(gn3[3,3])
+    vphimean=avg_ud[3]*np.sqrt(gn3[3,3])
+    vphipert=(ud[3]-avg_ud[3])*np.sqrt(gn3[3,3])
+    ##integrands for the radial total stress and the 4 terms that make it
+    integrand_rp=-vr*vphi*gdet*_dx1*_dx2*_dx3
+    integrand_rp_mean=-vrmean*vphimean*gdet*_dx1*_dx2 #avg terms are 2d (r and theta), so don't integrate over phi
+    integrand_rp_cross1=-vrmean*vphipert*gdet*_dx1*_dx2*_dx3
+    integrand_rp_cross2=-vrpert*vphimean*gdet*_dx1*_dx2*_dx3
+    integrand_rp_pert=-vrpert*vphipert*gdet*_dx1*_dx2*_dx3
+    ##masking and integrating
+    # 2-23 here's where the found ibeta threshold value should be updated at every masked_where instance
+    #total stress
+    bubble_rp_tot=ma.masked_where(ibeta<50,integrand_rp)
+    disk_rp_tot=ma.masked_where(ibeta>=50,integrand_rp)
+    numreyrp_bub_tot=np.sum(bubble_rp_tot[nxin:nxout,mhin:mhout,:])
+    numreyrp_disk_tot=np.sum(disk_rp_tot[nxin:nxout,mhin:mhout,:])
+    '''#mean field component - masking doesn't work because avg2d averages in phi, so no good way to get 1D ibeta
+    Find mean field component by subracting other values from total'''
+
+    #mean radial, turbulent phi
+    bubble_rp_cross1=ma.masked_where(ibeta<50,integrand_rp_cross1)
+    disk_rp_cross1=ma.masked_where(ibeta>=50,integrand_rp_cross1)
+    numreyrp_bub_cross1=np.sum(bubble_rp_cross1[nxin:nxout,mhin:mhout,:])
+    numreyrp_disk_cross1=np.sum(disk_rp_cross1[nxin:nxout,mhin:mhout,:])
+    #turbulent radial, mean phi
+    bubble_rp_cross2=ma.masked_where(ibeta<50,integrand_rp_cross2)
+    disk_rp_cross2=ma.masked_where(ibeta>=50,integrand_rp_cross2)
+    numreyrp_bub_cross2=np.sum(bubble_rp_cross2[nxin:nxout,mhin:mhout,:])
+    numreyrp_disk_cross2=np.sum(disk_rp_cross2[nxin:nxout,mhin:mhout,:])
+    #both turbulent
+    bubble_rp_pert=ma.masked_where(ibeta<50,integrand_rp_pert)
+    disk_rp_pert=ma.masked_where(ibeta>=50,integrand_rp_pert)
+    numreyrp_bub_pert=np.sum(bubble_rp_pert[nxin:nxout,mhin:mhout,:])
+    numreyrp_disk_pert=np.sum(disk_rp_pert[nxin:nxout,mhin:mhout,:])
+
+    ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
+    integrand_denom=ptot*gdet*_dx1*_dx2 # correct 3-1
+    denom=np.sum(integrand_denom[nxin:nxout,mhin:mhout,:])
+
+    ###normalized stress in/out of bubble
+    alphareyrp_bub_tot=nummagrp_bub_tot/denom
+    alphareyrp_disk_tot=nummagrp_disk_tot/denom
+    alphareyrp_bub_cross1=nummagrp_bub_cross1/denom
+    alphareyrp_disk_cross1=nummagrp_disk_cross1/denom
+    alphareyrp_bub_cross2=nummagrp_bub_cross2/denom
+    alphareyrp_disk_cross2=nummagrp_disk_cross2/denom
+    alphareyrp_bub_pert=nummagrp_bub_pert/denom
+    alphareyrp_disk_pert=nummagrp_disk_pert/denom
+
+    ###total stress
+    numreyrp_tot=np.sum(integrand_rp[nxin:nxout,mhin:mhout,:])
+    numreyrp_mean=np.sum(integrand_rp_mean[nxin:nxout,mhin:mhout,:])
+    numreyrp_cross1=np.sum(integrand_rp_cross1[nxin:nxout,mhin:mhout,:])
+    numreyrp_cross2=np.sum(integrand_rp_cross2[nxin:nxout,mhin:mhout,:])
+    numreyrp_pert=np.sum(integrand_rp_pert[nxin:nxout,mhin:mhout,:])
+    alphareyrp_tot=numreyrp_tot/denom
+    alphareyrp_mean=numreyrp_mean/denom
+    alphareyrp_cross1=numreyrp_cross1/denom
+    alphareyrp_cross2=numreyrp_cross2/denom
+    alphareyrp_pert=numreyrp_pert/denom
+
+    #return ibeta, integrand_rp_mean, gdet, _dx1, _dx2, _dx3
+    return fnumber, alphareyrp_tot, alphareyrp_mean, alphareyrp_cross1, alphareyrp_cross2, alphareyrp_pert, alphareyrp_bub_tot, alphareyrp_bub_cross1, alphareyrp_bub_cross2, alphareyrp_bub_pert, alphareyrp_disk_tot, alphareyrp_disk_cross1, alphareyrp_disk_cross2, alphareyrp_disk_pert
+
