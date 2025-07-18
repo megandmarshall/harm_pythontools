@@ -4417,19 +4417,8 @@ def stressvtime(fnumber):
     nummagrp_pert_in=np.sum(bubble_rp_pert[nxin:nxout,mhin:mhout,:])
     nummagrp_pert_out=np.sum(disk_rp_pert[nxin:nxout,mhin:mhout,:])
 
-    integrand_zp=-bz*bphi*gdet*_dx1*_dx2*_dx3
-    bubble_zp=ma.masked_where(ibeta<40,integrand_zp)
-    disk_zp=ma.masked_where(ibeta>=40,integrand_zp)
-    nummagzp_in=np.sum(bubble_zp[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp[nxin:nxout,mhin:ny/2,:])
-    nummagzp_out=np.sum(disk_zp[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp[nxin:nxout,mhin:ny/2,:])
-    integrand_zp_pert=-bzpert*bphipert*gdet*_dx1*_dx2*_dx3
-    bubble_zp_pert=ma.masked_where(ibeta<40,integrand_zp_pert)
-    disk_zp_pert=ma.masked_where(ibeta>=40,integrand_zp_pert)
-    nummagzp_pert_in=np.sum(bubble_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_pert[nxin:nxout,mhin:ny//2,:])
-    nummagzp_pert_out=np.sum(disk_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny//2,:])
-
     ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
-    integrand_denom=ptot*gdet*_dx1*_dx2*_dx3
+    integrand_denom=ptot*gdet*_dx1*_dx2
     denom=np.sum(integrand_denom[nxin:nxout,mhin:mhout,:])
     
     ###masked quantities for plotting
@@ -4443,22 +4432,13 @@ def stressvtime(fnumber):
     alphamagrp_pert_bubble=nummagrp_pert_in/denom
     alphamagrp_pert_disk=nummagrp_pert_out/denom
 
-    alphamagzp_bubble=nummagzp_in/denom
-    alphamagzp_disk=nummagzp_out/denom
-    alphamagzp_pert_bubble=nummagzp_pert_in/denom
-    alphamagzp_pert_disk=nummagzp_pert_out/denom
-
     ###total stress
     nummagrp=np.sum(integrand_rp[nxin:nxout,mhin:mhout,:])
     nummagrp_pert=np.sum(integrand_rp_pert[nxin:nxout,mhin:mhout,:])
     alphamagrp=nummagrp/denom
     alphamagrp_pert=nummagrp_pert/denom
 
-    nummagzp=np.sum(integrand_zp[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp[nxin:nxout,mhin:ny//2,:])
-    nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny//2,:])
-    alphamagzp=nummagzp/denom
-    alphamagzp_pert=nummagzp_pert/denom
-    print(alphamagrp_bubble, alphamagrp_disk)
+    #print(alphamagrp_bubble, alphamagrp_disk)
     
     '''myfun=(-br*bphi)*r**2/np.average(ptot[ihor,ny/2,:])
     myfun[myfun>3]=3
@@ -4478,8 +4458,7 @@ def stressvtime(fnumber):
     plt.ylabel(r"$y [r_g]$",ha='left',labelpad=20,fontsize=14)
     plt.savefig('amag'+str(fnumber)+'.png')'''
 
-    return fnumber, alphamagrp_bubble, alphamagrp_pert_bubble, alphamagrp_disk, alphamagrp_pert_disk, alphamagzp_bubble, alphamagzp_pert_bubble, alphamagzp_disk, alphamagzp_pert_disk
-    #return ibeta, rho
+    return fnumber, alphamagrp_bubble, alphamagrp_pert_bubble, alphamagrp_disk, alphamagrp_pert_disk
 
 def stressdecompvtime(fnumber):
     # first load grid file
@@ -4558,41 +4537,8 @@ def stressdecompvtime(fnumber):
     nummagrp_bub_pert=np.sum(bubble_rp_pert[nxin:nxout,mhin:mhout,:])
     nummagrp_disk_pert=np.sum(disk_rp_pert[nxin:nxout,mhin:mhout,:])
 
-    ##integrands for the vertical total stress and the 4 terms that make it
-    integrand_zp=-bz*bphi*gdet*_dx1*_dx2*_dx3
-    integrand_zp_mean=-bzmean*bphimean*gdet*_dx1*_dx2 #avg terms are 2d (r and theta), so don't integrate over phi
-    integrand_zp_cross1=-bzmean*bphipert*gdet*_dx1*_dx2*_dx3
-    integrand_zp_cross2=-bzpert*bphimean*gdet*_dx1*_dx2*_dx3
-    integrand_zp_pert=-bzpert*bphipert*gdet*_dx1*_dx2*_dx3
-    ##masking and integrating
-    #total stress
-    bubble_zp_tot=ma.masked_where(ibeta<40,integrand_zp)
-    disk_zp_tot=ma.masked_where(ibeta>=40,integrand_zp)
-    nummagzp_bub_tot=np.sum(bubble_zp_tot[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_tot[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_tot=np.sum(disk_zp_tot[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_tot[nxin:nxout,mhin:ny//2,:])
-    '''#mean field - masking not working because avg2d averages in phi, so no good way to get 1D ibeta
-    bubble_zp_mean=ma.masked_where(ibeta[:,ny/2,:]<40,integrand_zp_mean)
-    disk_zp_mean=ma.masked_where(ibeta[:,ny/2,:]>=40,integrand_zp_mean)
-    nummagzp_bub_mean=np.sum(bubble_zp_mean[nxin:nxout,ny/2:mhout,:])-np.sum(bubble_zp_mean[nxin:nxout,mhin:ny/2,:])
-    nummagzp_disk_mean=np.sum(disk_zp_mean[nxin:nxout,ny/2:mhout,:])-np.sum(disk_zp_mean[nxin:nxout,mhin:ny/2,:])'''
-    #mean vertical, turbulent phi
-    bubble_zp_cross1=ma.masked_where(ibeta<40,integrand_zp_cross1)
-    disk_zp_cross1=ma.masked_where(ibeta>=40,integrand_zp_cross1)
-    nummagzp_bub_cross1=np.sum(bubble_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_cross1[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_cross1=np.sum(disk_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_cross1[nxin:nxout,mhin:ny//2,:])
-    #turbulent vertical, mean phi
-    bubble_zp_cross2=ma.masked_where(ibeta<40,integrand_zp_cross2)
-    disk_zp_cross2=ma.masked_where(ibeta>=40,integrand_zp_cross2)
-    nummagzp_bub_cross2=np.sum(bubble_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_cross2[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_cross2=np.sum(disk_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_cross2[nxin:nxout,mhin:ny//2,:])
-    #both turbulent
-    bubble_zp_pert=ma.masked_where(ibeta<40,integrand_zp_pert)
-    disk_zp_pert=ma.masked_where(ibeta>=40,integrand_zp_pert)
-    nummagzp_bub_pert=np.sum(bubble_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(bubble_zp_pert[nxin:nxout,mhin:ny//2,:])
-    nummagzp_disk_pert=np.sum(disk_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(disk_zp_pert[nxin:nxout,mhin:ny//2,:])
-
     ptot=0.5*avg_bsq+(gam-1.0)*avg_ug
-    integrand_denom=ptot*gdet*_dx1*_dx2*_dx3
+    integrand_denom=ptot*gdet*_dx1*_dx2
     denom=np.sum(integrand_denom[nxin:nxout,mhin:mhout,:])
 
     ###normalized stress in/out of bubble
@@ -4607,17 +4553,6 @@ def stressdecompvtime(fnumber):
     alphamagrp_bub_pert=nummagrp_bub_pert/denom
     alphamagrp_disk_pert=nummagrp_disk_pert/denom
 
-    alphamagzp_bub_tot=nummagzp_bub_tot/denom
-    alphamagzp_disk_tot=nummagzp_disk_tot/denom
-    #alphamagzp_bub_mean=nummagzp_bub_mean/denom
-    #alphamagzp_disk_mean=nummagzp_disk_mean/denom
-    alphamagzp_bub_cross1=nummagzp_bub_cross1/denom
-    alphamagzp_disk_cross1=nummagzp_disk_cross1/denom
-    alphamagzp_bub_cross2=nummagzp_bub_cross2/denom
-    alphamagzp_disk_cross2=nummagzp_disk_cross2/denom
-    alphamagzp_bub_pert=nummagzp_bub_pert/denom
-    alphamagzp_disk_pert=nummagzp_disk_pert/denom
-
     ###total stress
     nummagrp_tot=np.sum(integrand_rp[nxin:nxout,mhin:mhout,:])
     nummagrp_mean=np.sum(integrand_rp_mean[nxin:nxout,mhin:mhout,:])
@@ -4630,21 +4565,8 @@ def stressdecompvtime(fnumber):
     alphamagrp_cross2=nummagrp_cross2/denom
     alphamagrp_pert=nummagrp_pert/denom
 
-    nummagzp_tot=np.sum(integrand_zp[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp[nxin:nxout,mhin:ny//2,:])
-    nummagzp_mean=np.sum(integrand_zp_mean[nxin:nxout,mhin:mhout,:])-np.sum(integrand_zp_mean[nxin:nxout,mhin:ny//2,:])
-    nummagzp_cross1=np.sum(integrand_zp_cross1[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_cross1[nxin:nxout,mhin:ny//2,:])
-    nummagzp_cross2=np.sum(integrand_zp_cross2[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_cross2[nxin:nxout,mhin:ny//2,:])
-    nummagzp_pert=np.sum(integrand_zp_pert[nxin:nxout,ny//2:mhout,:])-np.sum(integrand_zp_pert[nxin:nxout,mhin:ny//2,:])
-    alphamagzp_tot=nummagzp_tot/denom
-    alphamagzp_mean=nummagzp_mean/denom
-    alphamagzp_cross1=nummagzp_cross1/denom
-    alphamagzp_cross2=nummagzp_cross2/denom
-    alphamagzp_pert=nummagzp_pert/denom
-
-    print(nummagzp_tot, nummagzp_mean,nummagzp_cross1,nummagzp_cross2,nummagzp_pert)
-
     #return ibeta, integrand_rp_mean, brmean, bphimean, gdet, _dx1, _dx2, _dx3
-    return fnumber, alphamagzp_tot, alphamagzp_mean, alphamagzp_cross1, alphamagzp_cross2, alphamagzp_pert, alphamagzp_bub_tot, alphamagzp_bub_cross1, alphamagzp_bub_cross2, alphamagzp_bub_pert, alphamagzp_disk_tot, alphamagzp_disk_cross1, alphamagzp_disk_cross2, alphamagzp_disk_pert
+    return fnumber, alphamagrp_tot, alphamagrp_mean, alphamagrp_cross1, alphamagrp_cross2, alphamagrp_pert, alphamagrp_bub_tot, alphamagrp_bub_cross1, alphamagrp_bub_cross2, alphamagrp_bub_pert, alphamagrp_disk_tot, alphamagrp_disk_cross1, alphamagrp_disk_cross2, alphamagrp_disk_pert
 
 ###################################
 #
