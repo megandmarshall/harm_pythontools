@@ -182,6 +182,13 @@ runglobalsetup()
 # GLOBAL IMPORTS
 #
 ###################################
+import os, sys
+# Ensures the streamlines py is accessible from any directory it's run from
+_here = os.path.dirname(os.path.abspath(__file__))
+_root = os.path.dirname(_here)
+for _p in (_root, _here):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 # import modules necessary for this file
 import shutil
@@ -206,7 +213,6 @@ import scipy as sp
 from scipy import fftpack
 from scipy.interpolate import griddata
 from scipy.interpolate import interp1d
-from scipy.special import sph_harm,lpmn,gammaln
 from scipy.optimize import leastsq
 from scipy.optimize import curve_fit
 
@@ -218,9 +224,8 @@ import matplotlib.colors as colors
 from matplotlib.colors import Normalize
 from matplotlib.patches import Ellipse
 
-import os,glob
+import glob
 import pylab
-import sys
 import streamlines #again, from harm_pythontools
 import re
 from datetime import datetime
@@ -4757,7 +4762,7 @@ def render_isosurf_as_points(max_rad, rho_min):
 
     #desired_max_rad = 4.5
     rad_index = int(iofr(max_rad))
-    print rad_index
+    print(rad_index)
 
     # make sure these indices are correct
     x_short=xraw[0:rad_index,:,:].view().reshape(-1)
@@ -4778,7 +4783,7 @@ def render_isosurf_as_points(max_rad, rho_min):
             iso_x.append(x_short[i])
             iso_y.append(y_short[i])
             iso_z.append(z_short[i])
-            print i, len(iso_rho), rho_short[i]
+            print (i, len(iso_rho), rho_short[i])
 
     # then create the 3d coordinate array
     coords = np.stack((iso_x, iso_y, iso_z), axis = -1)
@@ -4869,7 +4874,6 @@ def get_vts(fnumber):
 # r-squared value)
 #
 ###################################
-from sklearn.linear_model import LinearRegression
 # ar for accretion rate, blah for ...?
 def get_reg(ups = True, ar = False, blah = False):
     plt.clf()
