@@ -1452,7 +1452,7 @@ def rfd(fieldlinefilename,**kwargs):
                 uradu=data['uradu']
             data.close()
         else:
-            print(("THETAROT=%21.15g for rfdtransform" % (THETAROT))) ; sys.stdout.flush()
+            #print(("THETAROT=%21.15g for rfdtransform" % (THETAROT))) ; sys.stdout.flush()
             # then need to get transformed quantities
             # transform uu,B into coordinates where spin is pointing in zhat.
             rfdtransform(gotgdetB=gotgdetB)
@@ -1464,9 +1464,9 @@ def rfd(fieldlinefilename,**kwargs):
                 np.savez(fnamenpz,rho=rho,ug=ug,uu=uu,B=B)
             #
             #
-            print(("rfd(after rfdtransform) time elapsed: %d" % (datetime.now()-start_time).seconds )) ; sys.stdout.flush()
-    else:
-        print(("No rdtrans for file=%s with THETAROT=%g" % (fname,THETAROT))) ;  sys.stdout.flush()
+            #print(("rfd(after rfdtransform) time elapsed: %d" % (datetime.now()-start_time).seconds )) ; sys.stdout.flush()
+    #else:
+        #print(("No rdtrans for file=%s with THETAROT=%g" % (fname,THETAROT))) ;  sys.stdout.flush()
     #
     #
     #############################################################################################
@@ -1481,7 +1481,7 @@ def rfd(fieldlinefilename,**kwargs):
     getkappas(gotrad)
     #
     #
-    print(("rfd(after rfdprocess) time elapsed: %d" % (datetime.now()-start_time).seconds )) ; sys.stdout.flush()
+    #print(("rfd(after rfdprocess) time elapsed: %d" % (datetime.now()-start_time).seconds )) ; sys.stdout.flush()
 
 def rfdheader(fin=None):
     global t,nx,ny,nz,startx1,startx2,startx3,_dx1,_dx2,_dx3,nstep,gam,a,R0,Rin,Rout,hslope,rundt,defcoord
@@ -1497,7 +1497,7 @@ def rfdheader(fin=None):
     #
     #time of the dump
     t = myfloatalt(np.float64(header[0]))
-    print(("rfdheader: t=%g" % (t))) ; sys.stdout.flush()
+    #print(("rfdheader: t=%g" % (t))) ; sys.stdout.flush()
     #dimensions of the grid
     nx = int(header[1])
     ny = int(header[2])
@@ -1577,7 +1577,7 @@ def rfdheader(fin=None):
         OUTERDEATHRADIUS=1E7
     #
     if numheaderitems>=32:
-        print("Found 32 header items, reading them in\n")  ; sys.stdout.flush()
+        #print("Found 32 header items, reading them in\n")  ; sys.stdout.flush()
         MBH=myfloatalt(float(header[19]))
         QBH=myfloatalt(float(header[20]))
         EP3=myfloatalt(float(header[21]))
@@ -1658,12 +1658,12 @@ def rfdprocess(gotgdetB=0):
     #if the input file contains additional data
     #
     if(gotgdetB==0): 
-        print("No data on gdetB, approximating it.") ; sys.stdout.flush()
+        #print("No data on gdetB, approximating it.") ; sys.stdout.flush()
         gdetB = np.zeros((4,nx,ny,nz),dtype='float32',order='F')
-        print("shapes:") ; sys.stdout.flush()
-        print((gdet.shape)) ; sys.stdout.flush()
-        print((B.shape)) ; sys.stdout.flush()
-        print((gdetB.shape)) ; sys.stdout.flush()
+        #print("shapes:") ; sys.stdout.flush()
+        #print((gdet.shape)) ; sys.stdout.flush()
+        #print((B.shape)) ; sys.stdout.flush()
+        #print((gdetB.shape)) ; sys.stdout.flush()
         gdetB[1:4] = gdet * B[1:4]
         #
         #
@@ -1716,11 +1716,12 @@ def rfdprocess(gotgdetB=0):
         r = rnew
         h = hnew
         ph = phnew
-        print("phnew") ; sys.stdout.flush()
-        print((phnew[0,0,:])) ; sys.stdout.flush()
+        #print("phnew") ; sys.stdout.flush()
+        #print((phnew[0,0,:])) ; sys.stdout.flush()
         gc.collect()
     else:
-        print("r in globals has shape2 of nz") ; sys.stdout.flush()
+        #print("r in globals has shape2 of nz") ; sys.stdout.flush()
+        pass
     #
     # other stuff
     entropy=(gam-1.0)*ugclean/rho**(gam)
@@ -2244,13 +2245,13 @@ def getrhouclean(rho,ug,uu):
     condmaxbsqorhorhs=rinterp*maxbsqorhonear + (1.0-rinterp)*maxbsqorhofar
     condmaxbsqorho=(bsq/rho < condmaxbsqorhorhs) # used as spatial conditional to replace single value of maxbsqorho 
     #
-    print(("t=%g" % (t)))
-    print("r")
-    print((r[:,ny//2,0]))
-    print("condmaxbsqorhorhs along r")
-    print((condmaxbsqorhorhs[:,ny//2,0]))
-    print("condmaxbsqorho along eq")
-    print((condmaxbsqorho[0,:,0]))
+    #print(("t=%g" % (t)))
+    #print("r")
+    #print((r[:,ny//2,0]))
+    #print("condmaxbsqorhorhs along r")
+    #print((condmaxbsqorhorhs[:,ny//2,0]))
+    #print("condmaxbsqorho along eq")
+    #print((condmaxbsqorho[0,:,0]))
     #
     bsqorho=bsq/rho # want this to be using original rho
     #
@@ -2676,10 +2677,10 @@ def get2davg(usedefault=0,whichgroup=-1,whichgroups=-1,whichgroupe=-1,itemspergr
     else:
         fname = "avg2d%02d_%04d_%04d.npy" % (itemspergroup, whichgroups, whichgroupe)
     #
-    print(("gdet2davg(): checking for fname=%s" % (fname))) ; sys.stdout.flush()
+    #print(("gdet2davg(): checking for fname=%s" % (fname))) ; sys.stdout.flush()
     #
     if os.path.isfile( fname ):
-        print(( "File %s exists, loading from file..." % fname ));sys.stdout.flush()
+        #print(( "File %s exists, loading from file..." % fname ));sys.stdout.flush()
         avgtot=np.load( fname )
         return( avgtot )
     #####################
@@ -2796,7 +2797,7 @@ def assignavg2dvars(avgmem):
     # uses fake 2D space for some single numbers
     avg_ts=avgmem[i,0,:];
     avg_te=avgmem[i,1,:];
-    print(( "assignavg2dvars: avg_ts=%d avg_te=%d" % (avg_ts[0],avg_te[0]))) ; sys.stdout.flush()
+    #print(( "assignavg2dvars: avg_ts=%d avg_te=%d" % (avg_ts[0],avg_te[0]))) ; sys.stdout.flush()
     avg_nitems=avgmem[i,2,:]
     i+=1
     #quantities
